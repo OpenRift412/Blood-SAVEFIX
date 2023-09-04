@@ -1,5 +1,5 @@
 # Blood-SAVEFIX
-Nuke's Blood src reconstruction with the addition of tmyqlfpir's difficulty savegame fix. 
+Nukeykt's Blood src reconstruction with the addition of tmyqlfpir's difficulty savegame fix, backported from NBlood. 
 Main goal is to fix this infamous bug while maintaining maximum compatibility with online play.
 
 If there are any issues with this fix's implementation, PLEASE open an issue to let me know! I'm not
