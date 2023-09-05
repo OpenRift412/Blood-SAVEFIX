@@ -5,6 +5,20 @@ Main goal is to fix this infamous bug while maintaining maximum compatibility wi
 If there are any issues with this fix's implementation, PLEASE open an issue to let me know! I'm not
 much of a programmer, but I'll run it by more knowledgeable folks if I can!
 
+**So what is this bug, exactly?**
+In vanilla Blood (all versions on DOS have this issue), there is an issue when loading a saved game that causes
+the damage scaling to use the incorrect values for the current difficulty, with the Lightly Broiled (medium)
+difficulty being the only one not affected.
+
+In vanilla, damage scaling is swapped as follows:
+ - Still Kicking -------> Extra Crispy
+ - Pink on the Inside --> Well Done
+ - Lightly Broiled -----> Lightly Broiled (unaffected)
+ - Well Done -----------> Pink on the Inside
+ - Extra Crispy --------> Still Kicking
+
+This fork of the source reconstruction fixes this, while also remaining demo and network compatible.
+
 # Blood-RE
 Blood (1997) source code reconstruction by nukeykt.
 
