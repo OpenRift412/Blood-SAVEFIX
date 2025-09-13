@@ -35,9 +35,9 @@
 #include "map2d.h"
 #include "network.h"
 #include "player.h"
+#include "sound.h"
 #include "seq.h"
 #include "sfx.h"
-#include "sound.h"
 #include "tile.h"
 #include "trig.h"
 #include "triggers.h"
@@ -855,7 +855,6 @@ BOOL func_3A158(PLAYER *a1, SPRITE *a2)
 
 static BOOL PickupItem(PLAYER *pPlayer, SPRITE *pItem)
 {
-    char buffer[80];
     SPRITE *pSprite = pPlayer->pSprite;
     XSPRITE *pXSprite = pPlayer->pXSprite;
     int pickupSnd = 775;
@@ -864,6 +863,8 @@ static BOOL PickupItem(PLAYER *pPlayer, SPRITE *pItem)
     {
     case 145:
     case 146:
+    {
+        char buffer[80];
         if (gGameOptions.nGameType != GAMETYPE_3)
             return 0;
         if (pItem->extra > 0)
@@ -957,6 +958,7 @@ static BOOL PickupItem(PLAYER *pPlayer, SPRITE *pItem)
             }
         }
         return 0;
+    }
     case 147:
         if (gGameOptions.nGameType != GAMETYPE_3)
             return 0;
@@ -1012,8 +1014,8 @@ static BOOL PickupItem(PLAYER *pPlayer, SPRITE *pItem)
     case 106:
         if (pPlayer->at88[pItem->type-99])
             return 0;
-        pPlayer->at88[pItem->type-99] = 1;
         pickupSnd = 781;
+        pPlayer->at88[pItem->type-99] = 1;
         break;
     case 111:
     case 108:
@@ -1059,7 +1061,7 @@ static BOOL PickupWeapon(PLAYER *pPlayer, SPRITE *pWeapon)
     int nAmmoType = pWeaponItemData->ata;
     if (!pPlayer->atcb[nWeaponType] || gGameOptions.nWeaponSettings == WEAPONSETTINGS_2 || gGameOptions.nWeaponSettings == WEAPONSETTINGS_3)
     {
-        if (pWeapon->type == 50 && gGameOptions.nGameType > GAMETYPE_1 && func_3A158(pPlayer, NULL))
+        if (pWeapon->type == 50 && gGameOptions.nGameType > GAMETYPE_1 && func_3A158(pPlayer))
             return 0;
         pPlayer->atcb[nWeaponType] = 1;
         if (nAmmoType != -1)
@@ -1248,7 +1250,10 @@ static void ProcessInput(PLAYER *pPlayer)
     POSTURE *pPosture = &gPosture[pPlayer->at5f][pPlayer->at2f];
     INPUT *pInput = &pPlayer->atc;
     pPlayer->at2e = pInput->syncFlags.run;
-    if (pInput->buttonFlags.byte || pInput->forward || pInput->strafe || pInput->turn)
+
+    BUTTONFLAGS bf1 = pInput->buttonFlags;
+
+    if ((bf1.byte & pInput->buttonFlags.byte) || pInput->forward || pInput->strafe || pInput->turn)
         pPlayer->at30a = 0;
     else if (pPlayer->at30a >= 0)
         pPlayer->at30a += 4;
@@ -1283,7 +1288,7 @@ static void ProcessInput(PLAYER *pPlayer)
                 playerReset(pPlayer);
                 if (gGameOptions.nGameType == GAMETYPE_0 && numplayers == 1)
                 {
-                    if (gDemo.at0)
+                    if (gDemo.RecordStatus())
                         gDemo.Close();
                     pInput->keyFlags.restart = 1;
                 }
@@ -1459,8 +1464,8 @@ static void ProcessInput(PLAYER *pPlayer)
         if (pPlayer->at372 <= 0 && pPlayer->at376)
         {
             SPRITE *pSprite2 = func_36878(pPlayer->pSprite, 212, pPlayer->pSprite->clipdist<<1, 0);
-            pSprite2->ang = (pPlayer->pSprite->ang+1024)&2047;
             int nSprite = pPlayer->pSprite->index;
+            pSprite2->ang = (pPlayer->pSprite->ang+1024)&2047;
             int x = Cos(pPlayer->pSprite->ang)>>16;
             int y = Sin(pPlayer->pSprite->ang)>>16;
             xvel[pSprite2->index] = xvel[nSprite] + mulscale14(0x155555, x);
@@ -1727,6 +1732,17 @@ void playerProcess(PLAYER *pPlayer)
     }
 }
 
+int hackfunc1(int x)
+{
+    int j = 1;
+    for (int i = 0; i < x; i++)
+    {
+        j /= i;
+        j += i;
+    }
+    return j;
+}
+
 SPRITE *playerFireMissile(PLAYER *pPlayer, int a2, long a3, long a4, long a5, int a6)
 {
     return actFireMissile(pPlayer->pSprite, a2, pPlayer->at6f-pPlayer->pSprite->z, a3, a4, a5, a6);
@@ -1764,7 +1780,7 @@ void playerFrag(PLAYER *pKiller, PLAYER *pVictim)
         int nMessage = Random(5);
         int nSound = gSuicide[nMessage].at4;
         char *pzMessage = gSuicide[nMessage].at0;
-        if (pVictim == gMe && gMe->at372 <= 0)
+        if (gMe == pVictim && pVictim->at372 <= 0)
         {
             sprintf(buffer, "You killed yourself!");
             if (gGameOptions.nGameType > GAMETYPE_0 && nSound >= 0)
@@ -1879,12 +1895,13 @@ int playerDamageSprite(int nSource, PLAYER *pPlayer, DAMAGE_TYPE nDamageType, in
     int nSprite = pSprite->index;
     int nXSprite = pSprite->extra;
     int nXSector = sector[pSprite->sectnum].extra;
+    int v18;
     int nType = pSprite->type - kDudeBase;
     DUDEINFO *pDudeInfo = &dudeInfo[nType];
     int nDeathSeqID = -1;
-    int v18 = -1;
+    v18 = -1;
     BOOL va = playerSeqPlaying(pPlayer, 16);
-    if (!pXSprite->health)
+    if (pXSprite->health == 0)
     {
         if (va)
         {

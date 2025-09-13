@@ -69,7 +69,7 @@ public:
         f_c = 0;
     }
 
-    tenWParcel(tenWParcel &a1) {
+    tenWParcel(tenWParcel const &a1) {
         f_0 = new char[a1.f_4];
         f_4 = a1.f_4;
         f_c = a1.f_c;
@@ -90,7 +90,7 @@ public:
     int f_10;
     tenRParcel(void*, unsigned int, int);
 
-    tenRParcel(tenRParcel &a1) {
+    tenRParcel(tenRParcel const &a1) {
         f_0 = new char[a1.f_4];
         f_4 = a1.f_4;
         f_8 = a1.f_8;
@@ -382,11 +382,13 @@ int tenBloodScore(char *a1)
 int tenLogData(char *a1, int a2, char *a3, unsigned int a4)
 {
     char buffer[512];
-    char *pos = buffer;
+    char* pos = buffer;
+    char x;
     for (unsigned int i = 0; i < a4; i++)
     {
         tenDbVerify2(pos - buffer < sizeof(buffer), 386);
-        sprintf(pos, "%02x ", a3[i]);
+        x = a3[i];
+        sprintf(pos, "%02x ", x);
         pos += 3;
     }
     tenDbLprintf(gTenLog, 5, "%-16.16s %6ld     %s", a1, a2, buffer);
@@ -395,12 +397,13 @@ int tenLogData(char *a1, int a2, char *a3, unsigned int a4)
 
 byte func_86760(byte *a1)
 {
+    byte* s = a1;
     byte v = 0;
     unsigned int vs = 0;
     tenDbVerify2(gTenActivated, 400);
     while (vs++ < 16)
     {
-        v += *a1++;
+        v += *s++;
     }
     return v;
 }
@@ -421,12 +424,12 @@ void tenCalculateJitter(void)
     for (int i = connecthead; i >= 0; i = connectpoint2[i])
     {
         int vd = gNetFifoHead[myconnectindex] - gNetFifoHead[i];
-        if (maxLag < vd)
+        if ((int)maxLag < vd)
             maxLag = vd;
     }
-    tenDbVerify2(maxLag < 300, 300);
+    tenDbVerify2(maxLag < 300, 457);
     int_29DC88[int_29DCB0++] = maxLag;
-    if (int_29DCB0 >= 10)
+    if (int_29DCB0 >= 10UL)
         int_29DCB0 = 0;
     for (i = 0; i < 10; i++)
     {
@@ -521,7 +524,7 @@ void playerLag::putSample(int a1)
 
 void playerLag::getMinMax(int *a1, int *a2)
 {
-    int vb = 500;
+    int vb = 5000;
     int vd = 0;
     int i;
     for (i = 0; i < 32; i++)

@@ -24,6 +24,16 @@
 #include "player.h"
 #include "resource.h"
 
+CChoke::CChoke()
+{
+    f_0 = NULL;
+    f_4 = NULL;
+    f_8 = NULL;
+    f_1c = NULL;
+    f_14 = 0;
+    f_18 = 0;
+}
+
 CChoke::CChoke(int _x, int _y, char *a1, void (*a2)(CChoke*, PLAYER*))
 {
     f_14 = _x;
@@ -70,7 +80,7 @@ void CChoke::func_84080(char *a1, void(*a2)(CChoke*, PLAYER*))
     {
         f_4 = gSysRes.Lookup(f_0, "QAV");
         if (!f_4)
-            ThrowError(65)("Could not load QAV %s\n", f_0);
+            ThrowError(89)("Could not load QAV %s\n", f_0);
         f_8 = (QAV*)gSysRes.Lock(f_4);
         f_8->x = f_14;
         f_8->y = f_18;

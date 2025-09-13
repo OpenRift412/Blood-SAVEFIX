@@ -249,61 +249,66 @@ void func_43CF8(SPRITE *pSprite, XSPRITE *pXSprite, EVENT a3)
                 evKill(pSprite->index, 3);
             }
         }
+        actPostSprite(pSprite->index, kStatFree);
         break;
     }
     case 35:
     {
         int nTarget = pXSprite->target;
-        if (nTarget >= 0 && nTarget < kMaxSprites)
+        if (nTarget < 0 || nTarget >= kMaxSprites)
+            break;
+        if (pXSprite->at32_0 != 0)
+            break;
+        SPRITE *pTarget = &sprite[nTarget];
+        if (pTarget->statnum != 6)
+            break;
+        if (pTarget->flags & kSpriteFlag5)
+            break;
+        if (pTarget->extra <= 0 || pTarget->extra >= kMaxXSprites)
+            break;
+        int top, bottom;
+        GetSpriteExtents(pSprite, &top, &bottom);
+        int nType = pTarget->type-kDudeBase;
+        DUDEINFO *pDudeInfo = &dudeInfo[nType];
+        int z1 = (top-pSprite->z)-256;
+        int x = pTarget->x;
+        int y = pTarget->y;
+        int z = pTarget->z;
+        int dx = pTarget->x - pSprite->x;
+        int dy = pTarget->y - pSprite->y;
+        int nDist = approxDist(dx, dy);
+        if (nDist == 0)
+            break;
+        if (cansee(pSprite->x, pSprite->y, top, pSprite->sectnum, x, y, z, pTarget->sectnum))
         {
-            if (!pXSprite->at32_0)
+            int t = divscale(nDist, 0x1aaaaa, 12);
+            x += (xvel[nTarget]*t)>>12;
+            y += (yvel[nTarget]*t)>>12;
+            short angBak = pSprite->ang;
+            pSprite->ang = getangle(x-pSprite->x, y-pSprite->y);
+            int dx = Cos(pSprite->ang)>>16;
+            int dy = Sin(pSprite->ang)>>16;
+            int tz = pTarget->z - (pTarget->yrepeat * pDudeInfo->atf) * 4 - top - 256;
+            tz = divscale(tz, nDist, 10);
+            int nMissileType = pXSprite->at14_0 == 0 ? 316 : 317;
+            int t2 = 0;
+            t2 = pXSprite->at14_0 == 0 ? 120 / 10.0 : (3 * 120) / 10.0;
+            SPRITE *pMissile = actFireMissile(pSprite, 0, z1, dx, dy, tz, nMissileType);
+            if (pMissile)
             {
-                SPRITE *pTarget = &sprite[nTarget];
-                if (pTarget->statnum == 6 && !(pTarget->flags&kSpriteFlag5) && pTarget->extra > 0 && pTarget->extra < kMaxXSprites)
-                {
-                    int top, bottom;
-                    GetSpriteExtents(pSprite, &top, &bottom);
-                    int nType = pTarget->type-kDudeBase;
-                    DUDEINFO *pDudeInfo = &dudeInfo[nType];
-                    int z1 = (top-pSprite->z)-256;
-                    int x = pTarget->x;
-                    int y = pTarget->y;
-                    int z = pTarget->z;
-                    int nDist = approxDist(x - pSprite->x, y - pSprite->y);
-                    if (nDist != 0 && cansee(pSprite->x, pSprite->y, top, pSprite->sectnum, x, y, z, pTarget->sectnum))
-                    {
-                        int t = divscale(nDist, 0x1aaaaa, 12);
-                        x += (xvel[nTarget]*t)>>12;
-                        y += (yvel[nTarget]*t)>>12;
-                        int angBak = pSprite->ang;
-                        pSprite->ang = getangle(x-pSprite->x, y-pSprite->y);
-                        int dx = Cos(pSprite->ang)>>16;
-                        int dy = Sin(pSprite->ang)>>16;
-                        int tz = pTarget->z - (pTarget->yrepeat * pDudeInfo->atf) * 4;
-                        int dz = divscale(tz - top - 256, nDist, 10);
-                        int nMissileType = 316+(pXSprite->at14_0 ? 1 : 0);
-                        double t2;
-                        if (!pXSprite->at14_0)
-                            t2 = 120 / 10.0;
-                        else
-                            t2 = (3*120) / 10.0;
-                        SPRITE *pMissile = actFireMissile(pSprite, 0, z1, dx, dy, dz, nMissileType);
-                        if (pMissile)
-                        {
-                            pMissile->owner = pSprite->owner;
-                            pXSprite->at32_0 = 1;
-                            evPost(pSprite->index, 3, t2, CALLBACK_ID_20);
-                            pXSprite->at14_0 = ClipLow(pXSprite->at14_0-1, 0);
-                        }
-                        pSprite->ang = angBak;
-                    }
-                }
+                pMissile->owner = pSprite->owner;
+                pXSprite->at32_0 = 1;
+                evPost(pSprite->index, 3, t2, CALLBACK_ID_20);
+                pXSprite->at14_0 = ClipLow(pXSprite->at14_0-1, 0);
             }
+            pSprite->ang = angBak;
         }
-        return;
+        break;
     }
+    default:
+        actPostSprite(pSprite->index, kStatFree);
+        break;
     }
-    actPostSprite(pSprite->index, kStatFree);
 }
 
 static void ActivateGenerator(int);
@@ -529,8 +534,9 @@ void OperateSprite(int nSprite, XSPRITE *pXSprite, EVENT a3)
         break;
     }
     case 400:
-        if (pSprite->flags&kSpriteFlag4)
-            return;
+        if (!(pSprite->flags&kSpriteFlag4))
+            actExplodeSprite(pSprite);
+        break;
     case 418:
     case 419:
     case 420:
@@ -714,17 +720,15 @@ void OperateWall(int nWall, XWALL *pXWall, EVENT a3)
     {
         case 511:
         {
-            BOOL bStatus;
+            BOOL bStatus = 0;
             switch (a3.at2_0)
             {
+            case 1:
             case 51:
                 bStatus = SetWallState(nWall, pXWall, 1);
                 break;
             case 0:
                 bStatus = SetWallState(nWall, pXWall, 0);
-                break;
-            case 1:
-                bStatus = SetWallState(nWall, pXWall, 1);
                 break;
             default:
                 bStatus = SetWallState(nWall, pXWall, pXWall->at1_6 ^ 1);
@@ -859,8 +863,7 @@ void DragPoint(int nWall, long x, long y)
 
 static void TranslateSector(int nSector, int a2, int a3, int a4, int a5, int a6, int a7, int a8, int a9, int a10, int a11, char a12)
 {
-    int nXSector = sector[nSector].extra;
-    XSECTOR *pXSector = &xsector[nXSector];
+    XSECTOR *pXSector = &xsector[sector[nSector].extra];
     int v20 = interpolate16(a6, a9, a2);
     int vc = interpolate16(a6, a9, a3);
     int v28 = vc - v20;
@@ -933,8 +936,8 @@ static void TranslateSector(int nSector, int a2, int a3, int a4, int a5, int a6,
                 RotatePoint(&x, &y, vbp, a4, a5);
             viewBackupSpriteLoc(nSprite, pSprite);
             pSprite->ang = (pSprite->ang+v14)&2047;
-            pSprite->x = x+(vc-a4);
-            pSprite->y = y+(v8-a5);
+            pSprite->x = x+vc-a4;
+            pSprite->y = y+v8-a5;
         }
         else if (sprite[nSprite].cstat&kSpriteStat14)
         {
@@ -1248,7 +1251,7 @@ static int HDoorBusy(unsigned int nSector, unsigned int a2)
     dassert(nSector < numsectors, 1815);
     SECTOR *pSector = &sector[nSector];
     int nXSector = pSector->extra;
-    dassert(nXSector > 0 && nXSector < kMaxXSectors, 1816);
+    dassert(nXSector > 0 && nXSector < kMaxXSectors, 1818);
     XSECTOR *pXSector = &xsector[nXSector];
     int nWave = (a2 > pXSector->at1_7) ? pXSector->at7_2 : pXSector->at7_5;
     SPRITE *pSprite1 = &sprite[pXSector->at2c_0];
@@ -1524,84 +1527,82 @@ void OperateSector(unsigned int nSector, XSECTOR *pXSector, EVENT a3)
     {
     case 6:
         pXSector->at35_0 = 1;
-        break;
+        return;
     case 7:
         pXSector->at35_0 = 0;
-        break;
+        return;
     case 8:
         pXSector->at35_0 ^= 1;
-        break;
+        return;
     case 9:
         pXSector->at1b_2 = 0;
         pXSector->at1b_3 = 1;
-        break;
+        return;
     case 10:
         pXSector->at1b_2 = 1;
         pXSector->at1b_3 = 0;
-        break;
+        return;
     case 11:
         pXSector->at1b_2 = 1;
         pXSector->at1b_3 = 1;
+        return;
+}
+    switch (pSector->type)
+    {
+    case 602:
+        OperateDoor(nSector, pXSector, a3, BUSYID_1);
+        break;
+    case 600:
+        OperateDoor(nSector, pXSector, a3, BUSYID_2);
+        break;
+    case 614:
+    case 616:
+        OperateDoor(nSector, pXSector, a3, BUSYID_3);
+        break;
+    case 615:
+    case 617:
+        OperateDoor(nSector, pXSector, a3, BUSYID_4);
+        break;
+    case 613:
+        switch (a3.at2_0)
+        {
+        case 1:
+            pXSector->at1_6 = 0;
+            pXSector->at1_7 = 0;
+            AddBusy(nSector, BUSYID_5, GetBusyDelta(pXSector, 1));
+            SectorStartSound(nSector, 0);
+            break;
+        case 0:
+            pXSector->at1_6 = 1;
+            pXSector->at1_7 = 65536;
+            AddBusy(nSector, BUSYID_5, GetBusyDelta(pXSector, 0));
+            SectorStartSound(nSector, 1);
+            break;
+        }
+        break;
+    case 604:
+        OperateTeleport(nSector, pXSector);
+        break;
+    case 612:
+        OperatePath(nSector, pXSector, a3);
         break;
     default:
-        switch (pSector->type)
+        if (pXSector->ata_4 || pXSector->at18_2)
+            OperateDoor(nSector, pXSector, a3, BUSYID_6);
+        else
         {
-        case 602:
-            OperateDoor(nSector, pXSector, a3, BUSYID_1);
-            break;
-        case 600:
-            OperateDoor(nSector, pXSector, a3, BUSYID_2);
-            break;
-        case 614:
-        case 616:
-            OperateDoor(nSector, pXSector, a3, BUSYID_3);
-            break;
-        case 615:
-        case 617:
-            OperateDoor(nSector, pXSector, a3, BUSYID_4);
-            break;
-        case 613:
             switch (a3.at2_0)
             {
-            case 1:
-                pXSector->at1_6 = 0;
-                pXSector->at1_7 = 0;
-                AddBusy(nSector, BUSYID_5, GetBusyDelta(pXSector, 1));
-                SectorStartSound(nSector, 0);
-                break;
             case 0:
-                pXSector->at1_6 = 1;
-                pXSector->at1_7 = 65536;
-                AddBusy(nSector, BUSYID_5, GetBusyDelta(pXSector, 0));
-                SectorStartSound(nSector, 1);
+                SetSectorState(nSector, pXSector, 0);
+                break;
+            case 1:
+                SetSectorState(nSector, pXSector, 1);
+                break;
+            default:
+                SetSectorState(nSector, pXSector, pXSector->at1_6^1);
                 break;
             }
-            break;
-        case 604:
-            OperateTeleport(nSector, pXSector);
-            break;
-        case 612:
-            OperatePath(nSector, pXSector, a3);
-            break;
-        default:
-            if (pXSector->ata_4 || pXSector->at18_2)
-                OperateDoor(nSector, pXSector, a3, BUSYID_6);
-            else
-            {
-                switch (a3.at2_0)
-                {
-                case 0:
-                    SetSectorState(nSector, pXSector, 0);
-                    break;
-                case 1:
-                    SetSectorState(nSector, pXSector, 1);
-                    break;
-                default:
-                    SetSectorState(nSector, pXSector, pXSector->at1_6^1);
-                    break;
-                }
-            }
-            break;
         }
         break;
     }
