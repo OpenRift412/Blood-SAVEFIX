@@ -51,10 +51,15 @@ char gVersionStringBuf[16];
 
 //char gBuildDate[] = __DATE__;
 //char gBuildTime[] = __TIME__;
+#if APPVER_BLOODREV >= AV_BR_BL121
 char gBuildDate[] = "Jul 15 1998";
 char gBuildTime[] = "14:37:44";
-
 const BLOODVERSION gGameVersion = { 21, 1 };
+#else
+char gBuildDate[] = "Mar 18 1998";
+char gBuildTime[] = "12:16:41";
+const BLOODVERSION gGameVersion = { 20, 1 };
+#endif
 
 BOOL gAdultContent = 1;
 
