@@ -107,6 +107,12 @@ inline void viewInterpolateSector(int nSector, SECTOR *pSector)
     }
 }
 
+#ifdef PLASMAPAK
+#define BACKTILE 2518
+#else
+#define BACKTILE 2046
+#endif
+
 void func_1EC78(int, char *, char *, char *);
 void viewResizeView(int);
 void viewToggle(int);

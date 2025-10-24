@@ -92,7 +92,14 @@ byte char_28E3D8[4000];
 short short_28F378;
 int int_28F37C;
 
-const BLOODVERSION short_1328AC = { 20, 2 };
+const BLOODVERSION short_1328AC = { 
+    20,
+#ifdef PLASMAPAK
+    2
+#else
+    1
+#endif
+};
 
 BOOL bNoResend = 1;
 int gSyncRate = 1;

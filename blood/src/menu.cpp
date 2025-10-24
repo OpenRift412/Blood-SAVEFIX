@@ -126,8 +126,8 @@ char *zDiffStrings[] =
 };
 
 char zUserMapName[13];
-char *zEpisodeNames[6];
-char *zLevelNames[6][16];
+char *zEpisodeNames[kMaxEpisodes];
+char *zLevelNames[kMaxEpisodes][16];
 
 CGameMenu menuMain;
 CGameMenu menuMainWithSave;
@@ -178,7 +178,7 @@ CGameMenuItemChain itemMainSave7("CREDITS", 1, 0, 135, 320, 1, &menuCredits);
 CGameMenuItemChain itemMainSave8("QUIT", 1, 0, 150, 320, 1, &menuQuit);
 
 CGameMenuItemTitle itemEpisodeTitle("EPISODES", 1, 160, 20, 2038);
-CGameMenuItemChain7F2F0 itemEpisodes[6];
+CGameMenuItemChain7F2F0 itemEpisodes[kMaxEpisodes];
 
 CGameMenuItemTitle itemDifficultyTitle("DIFFICULTY", 1, 160, 20, 2038);
 CGameMenuItemChain itemDifficulty1("STILL KICKING", 1, 0, 60, 320, 1, NULL, -1, SetDifficultyAndStart, 0);
@@ -247,7 +247,7 @@ CGameMenuItemZEditBitmap itemLoadGame7(NULL, 3, 20, 120, 320, strRestoreGameStri
 CGameMenuItemZEditBitmap itemLoadGame8(NULL, 3, 20, 130, 320, strRestoreGameStrings[7], 16, 1, LoadGame, 7);
 CGameMenuItemZEditBitmap itemLoadGame9(NULL, 3, 20, 140, 320, strRestoreGameStrings[8], 16, 1, LoadGame, 8);
 CGameMenuItemZEditBitmap itemLoadGame10(NULL, 3, 20, 150, 320, strRestoreGameStrings[9], 16, 1, LoadGame, 9);
-CGameMenuItemBitmapLS itemLoadGamePic(NULL, 3, 0, 0, 2518);
+CGameMenuItemBitmapLS itemLoadGamePic(NULL, 3, 0, 0, BACKTILE);
 
 CGameMenuItemTitle itemNetStartTitle("NETWORK GAME", 1, 160, 20, 2038);
 CGameMenuItemZCycle itemNetStart1("GAME", 1, 20, 35, 280, 0, 0, zNetGameTypes, 3);
@@ -412,7 +412,7 @@ void SetupEpisodeMenu(void)
     int height;
     gMenuTextMgr.GetFontInfo(1, NULL, NULL, &height);
     int j = 0;
-    for (int i = 0; i < 6; i++)
+    for (int i = 0; i < kMaxEpisodes; i++)
     {
         EPISODEINFO *pEpisode = &gEpisodeInfo[i];
         if (!pEpisode->bloodbath || gGameOptions.nGameType != GAMETYPE_0)
@@ -518,7 +518,7 @@ void SetupNetStartMenu(void)
     BOOL oneEpisode = 0;
     menuNetStart.Add(&itemNetStartTitle, 0);
     menuNetStart.Add(&itemNetStart1, 1);
-    for (int i = 0; i < (oneEpisode ? 1 : 6); i++)
+    for (int i = 0; i < (oneEpisode ? 1 : kMaxEpisodes); i++)
     {
         EPISODEINFO *pEpisode = &gEpisodeInfo[i];
         if (i < gEpisodeCount)
@@ -931,7 +931,7 @@ void SaveGame(CGameMenuItemZEditBitmap *pItem, CGameMenuEvent *event)
                 gGameOptions.nSaveGameSlot = nSlot;
                 if (!gSaveGamePic[nSlot])
                     gSaveGamePic[nSlot] = (byte*)Resource::Alloc(0xfa00);
-                func_1EC78(2518, "Saving", "Saving Your Game", strRestoreGameStrings[nSlot]);
+                func_1EC78(BACKTILE, "Saving", "Saving Your Game", strRestoreGameStrings[nSlot]);
                 gSaveGameNum = nSlot;
                 LoadSave::SaveGame(strSaveGameName);
                 gQuickSaveSlot = nSlot;
@@ -955,7 +955,7 @@ void QuickSaveGame(void)
     strcpy(gGameOptions.szUserGameName, strRestoreGameStrings[gQuickSaveSlot]);
     sprintf(gGameOptions.szSaveGameName, strSaveGameName);
     gGameOptions.nSaveGameSlot = gQuickSaveSlot;
-    func_1EC78(2518, "Saving", "Saving Your Game", strRestoreGameStrings[gQuickSaveSlot]);
+    func_1EC78(BACKTILE, "Saving", "Saving Your Game", strRestoreGameStrings[gQuickSaveSlot]);
     LoadSave::SaveGame(strSaveGameName);
     gGameOptions.picEntry = gSavedOffset;
     memcpy(&gSaveGameOptions[gQuickSaveSlot], &gGameOptions, sizeof(GAMEOPTIONS));
@@ -975,7 +975,7 @@ void LoadGame(CGameMenuItemZEditBitmap *pItem, CGameMenuEvent *event)
     BOOL t = gDemo.at1;
     if (t)
         gDemo.Close();
-    func_1EC78(2518, "Loading", "Loading Saved Game", strRestoreGameStrings[nSlot]);
+    func_1EC78(BACKTILE, "Loading", "Loading Saved Game", strRestoreGameStrings[nSlot]);
     LoadSave::LoadGame(strLoadGameName);
     gGameMenuMgr.Deactivate();
     gQuickLoadSlot = nSlot;
@@ -989,7 +989,7 @@ void QuickLoadGame(void)
     sprintf(strLoadGameName, "GAME00%02d.SAV", gQuickLoadSlot);
     if (access(strLoadGameName, 4) == -1)
         return;
-    func_1EC78(2518, "Loading", "Loading Saved Game", strRestoreGameStrings[gQuickLoadSlot]);
+    func_1EC78(BACKTILE, "Loading", "Loading Saved Game", strRestoreGameStrings[gQuickLoadSlot]);
     LoadSave::LoadGame(strLoadGameName);
     gGameMenuMgr.Deactivate();
 }
@@ -1067,7 +1067,7 @@ void MenuSetupEpisodeInfo(void)
 {
     memset(zEpisodeNames, 0, sizeof(zEpisodeNames));
     memset(zLevelNames, 0, sizeof(zLevelNames));
-    for (int i = 0; i < 6; i++)
+    for (int i = 0; i < kMaxEpisodes; i++)
     {
         if (i < gEpisodeCount)
         {

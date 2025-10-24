@@ -207,7 +207,7 @@ void MyLoadSave::Load(void)
     if (version != gGameVersion.w)
         ThrowError(296)("Incompatible version of saved game found!");
     Read(&release, sizeof(release));
-    id = 4;
+    id = RELEASEID;
     if (release != id)
         ThrowError(314)("Saved game is from another release of Blood");
     Read(&gGameOptions, sizeof(gGameOptions));
@@ -310,7 +310,7 @@ void MyLoadSave::Save(void)
     Write(&id, sizeof(id));
     ushort version = gGameVersion.w;
     Write(&version, sizeof(version));
-    id = 4;
+    id = RELEASEID;
     Write(&id, sizeof(id));
     for (int i = 0; i < kMaxSprites; i++)
     {
@@ -436,7 +436,7 @@ void LoadSavedInfo(void)
             goto next;
         }
         read(hFile, &v8, sizeof(v8));
-        vc = 4;
+        vc = RELEASEID;
         if (v8 != vc)
         {
             close(hFile);
