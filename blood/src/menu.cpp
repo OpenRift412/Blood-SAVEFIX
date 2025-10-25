@@ -84,7 +84,11 @@ char *zNetGameTypes[] =
 {
     "Cooperative",
     "Bloodbath",
+#ifdef SHAREWARE
+    "Teams (retail)",
+#else
     "Teams",
+#endif
 };
 
 char *zMonsterStrings[] =
@@ -153,6 +157,10 @@ CGameMenu menuSorry2;
 
 CGameMenuItemQAV itemBloodQAV("", 3, 160, 100, "BDRIP");
 CGameMenuItemQAV itemCreditsQAV("", 3, 160, 100, "CREDITS");
+#ifdef SHAREWARE
+CGameMenuItemQAV itemHelp1QAV("", 3, 160, 100, "HELP1");
+CGameMenuItemQAV itemHelp2QAV("", 3, 160, 100, "HELP2");
+#endif
 CGameMenuItemQAV itemHelp3QAV("", 3, 160, 100, "HELP3");
 CGameMenuItemQAV itemHelp3BQAV("", 3, 160, 100, "HELP3B");
 CGameMenuItemQAV itemHelp4QAV("", 3, 160, 100, "HELP4");
@@ -163,7 +171,11 @@ CGameMenuItemChain itemMain1("NEW GAME", 1, 0, 45, 320, 1, &menuEpisode);
 CGameMenuItemChain itemMain2("PLAY ONLINE", 1, 0, 65, 320, 1, &menuOnline);
 CGameMenuItemChain itemMain3("OPTIONS", 1, 0, 85, 320, 1, &menuOptions);
 CGameMenuItemChain itemMain4("LOAD GAME", 1, 0, 105, 320, 1, &menuLoadGame);
+#ifdef SHAREWARE
+CGameMenuItemChain itemMain5("HELP / ORDERING", 1, 0, 125, 320, 1, &menuOrder);
+#else
 CGameMenuItemChain itemMain5("HELP", 1, 0, 125, 320, 1, &menuOrder);
+#endif
 CGameMenuItemChain itemMain6("CREDITS", 1, 0, 145, 320, 1, &menuCredits);
 CGameMenuItemChain itemMain7("QUIT", 1, 0, 165, 320, 1, &menuQuit);
 
@@ -173,7 +185,11 @@ CGameMenuItemChain itemMainSave2("PLAY ONLINE", 1, 0, 60, 320, 1, &menuOnline);
 CGameMenuItemChain itemMainSave3("OPTIONS", 1, 0, 75, 320, 1, &menuOptions);
 CGameMenuItemChain itemMainSave4("SAVE GAME", 1, 0, 90, 320, 1, &menuSaveGame, -1, SaveGameProcess);
 CGameMenuItemChain itemMainSave5("LOAD GAME", 1, 0, 105, 320, 1, &menuLoadGame);
+#ifdef SHAREWARE
+CGameMenuItemChain itemMainSave6("HELP / ORDERING", 1, 0, 120, 320, 1, &menuOrder);
+#else
 CGameMenuItemChain itemMainSave6("HELP", 1, 0, 120, 320, 1, &menuOrder);
+#endif
 CGameMenuItemChain itemMainSave7("CREDITS", 1, 0, 135, 320, 1, &menuCredits);
 CGameMenuItemChain itemMainSave8("QUIT", 1, 0, 150, 320, 1, &menuQuit);
 
@@ -307,7 +323,11 @@ CGameMenuItem7EA1C itemOnline2(
 CGameMenuItem7EA1C itemOnline3("HEAT", 1, 0, 85, 320, "matt", "HEAT", 1);
 CGameMenuItem7EA1C itemOnline4("KALI", 1, 0, 105, 320, "matt", "KALI", 1);
 CGameMenuItem7EA1C itemOnline5("MPATH", 1, 0, 125, 320, "matt", "MPATH", 1);
+#ifdef SHAREWARE
+CGameMenuItem7EA1C itemOnline6("TEN", 1, 0, 145, 320, "matt", "TEN", 1);
+#else
 CGameMenuItemChain itemOnline6("TEN", 1, 0, 145, 320, 1, NULL, -1, TenProcess);
+#endif
 
 void SetupLoadingScreen(void)
 {
@@ -409,6 +429,9 @@ void SetupEpisodeMenu(void)
 {
     menuEpisode.Add(&itemEpisodeTitle, 0);
     BOOL unk = 0;
+#ifdef SHAREWARE
+    unk = 1;
+#endif
     int height;
     gMenuTextMgr.GetFontInfo(1, NULL, NULL, &height);
     int j = 0;
@@ -516,6 +539,9 @@ void SetupMainMenuWithSave(void)
 void SetupNetStartMenu(void)
 {
     BOOL oneEpisode = 0;
+#ifdef SHAREWARE
+    oneEpisode = 1;
+#endif
     menuNetStart.Add(&itemNetStartTitle, 0);
     menuNetStart.Add(&itemNetStart1, 1);
     for (int i = 0; i < (oneEpisode ? 1 : kMaxEpisodes); i++)
@@ -659,10 +685,18 @@ void SetupHelpOrderMenu(void)
 {
     menuOrder.Add(&itemHelp4QAV, 1);
     menuOrder.Add(&itemHelp5QAV, 0);
+#ifdef SHAREWARE
+    menuOrder.Add(&itemHelp1QAV, 0);
+    menuOrder.Add(&itemHelp2QAV, 0);
+#endif
     menuOrder.Add(&itemHelp3QAV, 0);
     menuOrder.Add(&itemHelp3BQAV, 0);
     itemHelp4QAV.at18 |= 10;
     itemHelp5QAV.at18 |= 10;
+#ifdef SHAREWARE
+    itemHelp1QAV.at18 |= 10;
+    itemHelp2QAV.at18 |= 10;
+#endif
     itemHelp3QAV.at18 |= 10;
     itemHelp3BQAV.at18 |= 10;
 }
@@ -880,6 +914,7 @@ void TenProcess(CGameMenuItemChain *)
         gTenQuit = TRUE;
         gGameMenuMgr.Deactivate();
     }
+#ifdef REGISTERED
     switch (ret)
     {
         case 0xedd:
@@ -895,6 +930,7 @@ void TenProcess(CGameMenuItemChain *)
             viewSetMessage("You can only run TEN from Windows 95.");
             break;
     }
+#endif
 }
 
 void func_5A164(void)

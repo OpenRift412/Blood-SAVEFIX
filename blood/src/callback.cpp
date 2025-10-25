@@ -35,6 +35,16 @@
 #include "triggers.h"
 #include "view.h"
 
+#if APPVER_BLOODREV >= AV_BR_BL120
+#define LDIFF1 0
+#define LDIFF2 0
+#define LDIFF3 0
+#else
+#define LDIFF1 -1
+#define LDIFF2 -3
+#define LDIFF3 -13
+#endif
+
 static void func_74C20(int nSprite) // 7
 {
     SPRITE *pSprite = &sprite[nSprite];
@@ -111,7 +121,7 @@ static void Remove(int nSprite) // 1
 
 static void FlareBurst(int nSprite) // 2
 {
-    dassert(nSprite >= 0 && nSprite < kMaxSprites, 139);
+    dassert(nSprite >= 0 && nSprite < kMaxSprites, 139+LDIFF1);
     SPRITE *pSprite = &sprite[nSprite];
     int nRadius = 0x55555;
     int nAngle = getangle(xvel[nSprite], yvel[nSprite]);
@@ -169,10 +179,10 @@ static void FlareSparkLite(int nSprite) // 4
 
 static void ZombieSpurt(int nSprite) // 5
 {
-    dassert(nSprite >= 0 && nSprite < kMaxSprites, 212);
+    dassert(nSprite >= 0 && nSprite < kMaxSprites, 212+LDIFF1);
     SPRITE *pSprite = &sprite[nSprite];
     int nXSprite = pSprite->extra;
-    dassert(nXSprite > 0 && nXSprite < kMaxXSprites, 215);
+    dassert(nXSprite > 0 && nXSprite < kMaxXSprites, 215+LDIFF1);
     XSPRITE *pXSprite = &xsprite[nXSprite];
     int top, bottom;
     GetSpriteExtents(pSprite, &top, &bottom);
@@ -233,12 +243,17 @@ static void Respawn(int nSprite) // 9
 {
     SPRITE *pSprite = &sprite[nSprite];
     int nXSprite = pSprite->extra;
-    dassert(nXSprite > 0 && nXSprite < kMaxXSprites, 302);
+    dassert(nXSprite > 0 && nXSprite < kMaxXSprites, 302+LDIFF1);
     XSPRITE *pXSprite = &xsprite[pSprite->extra];
+#if APPVER_BLOODREV >= AV_BR_BL120
     if (pSprite->statnum != 8 && pSprite->statnum != 4)
-        ThrowError(306)("Sprite %d is not on Respawn or Thing list\n", nSprite);
+        ThrowError(306+LDIFF1)("Sprite %d is not on Respawn or Thing list\n", nSprite);
+#else
+    if (pSprite->statnum != 8)
+        ThrowError(306+LDIFF1)("Sprite %d is not on Respawn list\n", nSprite);
+#endif
     if (!(pSprite->flags&kSpriteFlag4))
-        ThrowError(309)("Sprite %d does not have the respawn attribute\n", nSprite);
+        ThrowError(309+LDIFF1)("Sprite %d does not have the respawn attribute\n", nSprite);
     switch (pXSprite->atb_4)
     {
     case 1:
@@ -257,10 +272,14 @@ static void Respawn(int nSprite) // 9
     }
     case 3:
     {
-        dassert(pSprite->owner != kStatRespawn, 336);
+        dassert(pSprite->owner != kStatRespawn, 336+LDIFF2);
+#if APPVER_BLOODREV >= AV_BR_BL120
         dassert(pSprite->owner >= 0 && pSprite->owner < kMaxStatus, 338);
+#endif
         ChangeSpriteStat(nSprite, pSprite->owner);
+#if APPVER_BLOODREV >= AV_BR_BL120
         pSprite->type = pSprite->inittype;
+#endif
         pSprite->owner = -1;
         pSprite->flags &= ~16;
         xvel[nSprite] = yvel[nSprite] = zvel[nSprite] = 0;
@@ -269,6 +288,7 @@ static void Respawn(int nSprite) // 9
         pXSprite->atd_2 = 0;
         if (pSprite->type >= kDudeBase && pSprite->type < kDudeMax)
         {
+#if APPVER_BLOODREV >= AV_BR_BL120
             int nType = pSprite->type-kDudeBase;
             pSprite->x = baseSprite[nSprite].x;
             pSprite->y = baseSprite[nSprite].y;
@@ -280,6 +300,15 @@ static void Respawn(int nSprite) // 9
                 seqSpawn(dudeInfo[nType].seqStartID, 3, pSprite->extra);
             aiInitSprite(pSprite);
             pXSprite->atd_3 = 0;
+#else
+            pXSprite->at34 = NULL;
+            pXSprite->target = 0;
+            pXSprite->health = 0;
+            pXSprite->at20_0 = 0;
+            pXSprite->at24_0 = 0;
+            pXSprite->at28_0 = 0;
+            pXSprite->atd_3 = 0;
+#endif
         }
         if (pSprite->type == 400)
         {
@@ -291,7 +320,7 @@ static void Respawn(int nSprite) // 9
         break;
     }
     default:
-        ThrowError(384)("Unexpected respawnPending value = %d", pXSprite->atb_4);
+        ThrowError(384+LDIFF3)("Unexpected respawnPending value = %d", pXSprite->atb_4);
         break;
     }
 }
@@ -303,7 +332,7 @@ static void PlayerBubble(int nSprite) // 10
     if (!IsPlayerSprite(pSprite))
         return;
     pPlayer = &gPlayer[pSprite->type-kDudePlayer1];
-    dassert(pPlayer != NULL, 398);
+    dassert(pPlayer != NULL, 398+LDIFF3);
     if (pPlayer->at302)
     {
         int top, bottom;
@@ -352,7 +381,7 @@ static void EnemyBubble(int nSprite) // 11
 
 static void CounterCheck(int nSector) // 12
 {
-    dassert(nSector >= 0 && nSector < kMaxSectors, 454);
+    dassert(nSector >= 0 && nSector < kMaxSectors, 454+LDIFF3);
     SECTOR *pSector = &sector[nSector];
     if (pSector->type != 619)
         return;
@@ -397,7 +426,7 @@ void func_76140(int nSprite) // 14
     if (pSprite->ang == 1024)
     {
         int nChannel = 28+(pSprite->index&2);
-        dassert(nChannel < 32, 512);
+        dassert(nChannel < 32, 512+LDIFF3);
         sfxPlay3DSound(pSprite, 385, nChannel, 1);
     }
     if (Chance(0x5000))
@@ -455,7 +484,7 @@ static void func_763BC(int nSprite) // 16
             return;
         }
         int nChannel = 28+(pSprite->index&2);
-        dassert(nChannel < 32, 596);
+        dassert(nChannel < 32, 596+LDIFF3);
         if (pSprite->type >= 37 && pSprite->type <= 39)
         {
             Random(3);
@@ -507,7 +536,7 @@ static void func_766B8(int nSprite) // 19
     if (pSprite->ang == 1024 && pSprite->type == 53)
     {
         int nChannel = 28+(pSprite->index&2);
-        dassert(nChannel < 32, 683);
+        dassert(nChannel < 32, 683+LDIFF3);
         sfxPlay3DSound(pSprite, 385, nChannel, 1);
     }
     SPRITE *pFX = NULL;

@@ -136,8 +136,10 @@ struct EPISODEINFO
     char at8f98[144];
     int at9028;
     int at902c;
+#ifdef REGISTERED
     char at9030[144];
     char at90c0[144];
+#endif
 };
 
 extern EPISODEINFO gEpisodeInfo[];

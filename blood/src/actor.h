@@ -18,6 +18,7 @@
 #define _ACTOR_H_
 
 #include "typedefs.h"
+#include "globals.h"
 #include "db.h"
 #include "gameutil.h"
 #include "misc.h"
@@ -224,7 +225,11 @@ int actSpriteOwnerToSpriteId(SPRITE *);
 
 int actGetRespawnTime(SPRITE *);
 
+#if APPVER_BLOODREV >= AV_BR_BL120
 SPRITE *func_36878(SPRITE *pSource, short nType, int a3, int a4 = 0);
+#else
+SPRITE *func_36878(SPRITE *pSource, short nType, int a3);
+#endif
 
 SPRITE *actFireMissile(SPRITE *, int, int, int, int, int, int);
 

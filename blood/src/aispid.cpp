@@ -29,6 +29,14 @@
 #include "sfx.h"
 #include "trig.h"
 
+#if APPVER_BLOODREV >= AV_BR_BL120
+#define LDIFF1 0
+#define LDIFF2 0
+#else
+#define LDIFF1 -1
+#define LDIFF2 -2
+#endif
+
 static void SpidBiteSeqCallback(int, int);
 static void SpidJumpSeqCallback(int, int);
 static void func_71370(int, int);
@@ -51,7 +59,7 @@ AISTATE spid13A92C = { 0, dword_279B50, 60, NULL, NULL, NULL, &spidIdle };
 
 static char func_70D30(XSPRITE *pXDude, int a2, int a3)
 {
-    dassert(pXDude != NULL, 92);
+    dassert(pXDude != NULL, 92+LDIFF1);
     int nDude = pXDude->reference;
     SPRITE *pDude = &sprite[nDude];
     if (IsPlayerSprite(pDude))
@@ -82,8 +90,8 @@ static void SpidBiteSeqCallback(int, int nXSprite)
     dx += Random2(2000);
     dy += Random2(2000);
     dz += Random2(2000);
-    dassert(pSprite->type >= kDudeBase && pSprite->type < kDudeMax, 142);
-    dassert(pXSprite->target >= 0 && pXSprite->target < kMaxSprites, 145);
+    dassert(pSprite->type >= kDudeBase && pSprite->type < kDudeMax, 142+LDIFF1);
+    dassert(pXSprite->target >= 0 && pXSprite->target < kMaxSprites, 145+LDIFF1);
     SPRITE *pTarget = &sprite[pXSprite->target];
     XSPRITE *pXTarget = &xsprite[pTarget->extra];
     if (IsPlayerSprite(pTarget))
@@ -142,8 +150,8 @@ static void SpidJumpSeqCallback(int, int nXSprite)
     dx += Random2(200);
     dy += Random2(200);
     dz += Random2(200);
-    dassert(pSprite->type >= kDudeBase && pSprite->type < kDudeMax, 245);
-    dassert(pXSprite->target >= 0 && pXSprite->target < kMaxSprites, 248);
+    dassert(pSprite->type >= kDudeBase && pSprite->type < kDudeMax, 245+LDIFF1);
+    dassert(pXSprite->target >= 0 && pXSprite->target < kMaxSprites, 248+LDIFF1);
     SPRITE *pTarget = &sprite[pXSprite->target];
     if (IsPlayerSprite(pTarget))
     {
@@ -174,9 +182,9 @@ static void func_71370(int, int nXSprite)
     XSPRITE *pXSprite = &xsprite[nXSprite];
     int nSprite = pXSprite->reference;
     SPRITE *pSprite = &sprite[nSprite];
-    dassert(pSprite->type >= kDudeBase && pSprite->type < kDudeMax, 296);
+    dassert(pSprite->type >= kDudeBase && pSprite->type < kDudeMax, 296+LDIFF1);
     DUDEINFO *pDudeInfo = &dudeInfo[pSprite->type-kDudeBase];
-    dassert(pXSprite->target >= 0 && pXSprite->target < kMaxSprites, 299);
+    dassert(pXSprite->target >= 0 && pXSprite->target < kMaxSprites, 299+LDIFF1);
     SPRITE *pTarget = &sprite[pXSprite->target];
     DUDEEXTRA_SPIDER *pDudeExtraE = &gDudeExtra[pSprite->extra].at6.spider;
     SPRITE* pSpawn = NULL;
@@ -197,7 +205,9 @@ static void func_71370(int, int nXSprite)
     {
         pDudeExtraE->at4++;
         pSpawn->owner = nSprite;
+#if APPVER_BLOODREV >= AV_BR_BL120
         gKillMgr.func_263E0(1);
+#endif
     }
 }
 
@@ -209,7 +219,7 @@ static void thinkSearch(SPRITE *pSprite, XSPRITE *pXSprite)
 
 static void thinkGoto(SPRITE *pSprite, XSPRITE *pXSprite)
 {
-    dassert(pSprite->type >= kDudeBase && pSprite->type < kDudeMax, 354);
+    dassert(pSprite->type >= kDudeBase && pSprite->type < kDudeMax, 354+LDIFF2);
     DUDEINFO *pDudeInfo = &dudeInfo[pSprite->type - kDudeBase];
     int dx = pXSprite->at20_0-pSprite->x;
     int dy = pXSprite->at24_0-pSprite->y;
@@ -229,9 +239,9 @@ static void thinkChase(SPRITE *pSprite, XSPRITE *pXSprite)
         return;
     }
     int dx, dy, nDist;
-    dassert(pSprite->type >= kDudeBase && pSprite->type < kDudeMax, 391);
+    dassert(pSprite->type >= kDudeBase && pSprite->type < kDudeMax, 391+LDIFF2);
     DUDEINFO *pDudeInfo = &dudeInfo[pSprite->type - kDudeBase];
-    dassert(pXSprite->target >= 0 && pXSprite->target < kMaxSprites, 394);
+    dassert(pXSprite->target >= 0 && pXSprite->target < kMaxSprites, 394+LDIFF2);
     SPRITE *pTarget = &sprite[pXSprite->target];
     XSPRITE *pXTarget = &xsprite[pTarget->extra];
     dx = pTarget->x-pSprite->x;

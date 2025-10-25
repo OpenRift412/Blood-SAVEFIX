@@ -22,7 +22,9 @@
 #include "config.h"
 #include "controls.h"
 #include "misc.h"
+#include "gfx.h"
 
+#if APPVER_BLOODREV >= AV_BR_BL120
 struct FONT {
     int tile;
     int xSize;
@@ -31,6 +33,7 @@ struct FONT {
 };
 
 extern FONT gFont[];
+#endif
 
 extern int gViewMode;
 extern int gZoom;
@@ -118,7 +121,10 @@ void viewResizeView(int);
 void viewToggle(int);
 void viewSetMessage(char *);
 void viewDrawText(int, char *, int, int, int, int, int position = 0, BOOL shadow = 0);
+#if APPVER_BLOODREV >= AV_BR_BL120
 void viewGetFontInfo(int nFont, char *pString, int *pXSize, int *pYSize);
+#endif
+void viewDrawChar(QFONT *pFont, char chr, int x, int y, byte *pLookup);
 void viewUpdatePages(void);
 void viewDrawSprite(long,long,long,int,int,schar,byte,ushort,long,long,long,long);
 void viewInit(void);

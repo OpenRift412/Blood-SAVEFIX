@@ -135,7 +135,11 @@ void ambInit(void)
             pChannel->atc = pRAWNode;
             pChannel->at14 = Resource::Size(pRAWNode);
             pChannel->at10 = (char*)gSoundRes.Lock(pRAWNode);
+#ifdef SHAREWARE
+            pChannel->at18 = 1;
+#else
             pChannel->at18 = pSFX->format;
+#endif
             nAmbChannels++;
         }
         pSprite->owner = i;

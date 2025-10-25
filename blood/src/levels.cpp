@@ -41,20 +41,32 @@
 short short_133FB4 = -1;
 char BloodINIFile[128] = "BLOOD.INI";
 
+#if APPVER_BLOODREV >= AV_BR_BL120
+#define MONSTERRESPAWNTIME 3600
+#else
+#define MONSTERRESPAWNTIME 1200
+#endif
+
 GAMEOPTIONS gSingleGameOptions = {
-    0, 2, 0, 0, "", "", 2, "", "", 0, 0, 0, 1, 0, 0, 0, 0, 0, 2, 3600, 1800, 1800, 7200
+    0, 2, 0, 0, "", "", 2, "", "", 0, 0, 0, 1, 0, 0, 0, 0, 0, 2, MONSTERRESPAWNTIME, 1800, 1800, 7200
 };
 
 GAMEOPTIONS gBloodBathGameOptions = {
-    2, 2, 0, 0, "", "", 2, "", "", 0, 0, 0, 0, 0, 1, 1, 2, 0, 2, 3600, 1800, 1800, 7200
+    2, 2, 0, 0, "", "", 2, "", "", 0, 0, 0, 0, 0, 1, 1,
+#if APPVER_BLOODREV >= AV_BR_BL120
+    2,
+#else
+    1,
+#endif
+    0, 2, MONSTERRESPAWNTIME, 1800, 1800, 7200
 };
 
 GAMEOPTIONS gCoopGameOptions = {
-    1, 2, 0, 0, "", "", 2, "", "", 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 3600, 1800, 1800, 3600
+    1, 2, 0, 0, "", "", 2, "", "", 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, MONSTERRESPAWNTIME, 1800, 1800, 3600
 };
 
 GAMEOPTIONS gTeamGameOptions = {
-    3, 2, 0, 0, "", "", 2, "", "", 0, 0, 0, 0, 0, 1, 2, 1, 0, 1, 3600, 1800, 1800, 7200
+    3, 2, 0, 0, "", "", 2, "", "", 0, 0, 0, 0, 0, 1, 2, 1, 0, 1, MONSTERRESPAWNTIME, 1800, 1800, 7200
 };
 int gNextLevel;
 GAMEOPTIONS gGameOptions;
@@ -86,10 +98,14 @@ void levelPlayIntroScene(int nEpisode)
     ambKillAll();
     seqKillAll();
     EPISODEINFO *pEpisode = &gEpisodeInfo[nEpisode];
-    if (pEpisode->at9028)
-        credPlaySmk(pEpisode->at8f08, pEpisode->at9028);
+    char* s = pEpisode->at8f08;
+    int i = pEpisode->at9028;
+    if (i)
+        credPlaySmk(s, i);
+#ifdef REGISTERED
     else
-        credPlaySmk(pEpisode->at8f08, pEpisode->at9030);
+        credPlaySmk(s, pEpisode->at9030);
+#endif
     scrSetDac();
     viewResizeView(gViewSize);
     credReset();
@@ -105,10 +121,14 @@ void levelPlayEndScene(int nEpisode)
     ambKillAll();
     seqKillAll();
     EPISODEINFO *pEpisode = &gEpisodeInfo[nEpisode];
-    if (pEpisode->at902c)
-        credPlaySmk(pEpisode->at8f98, pEpisode->at902c);
+    char* s = pEpisode->at8f98;
+    int i = pEpisode->at902c;
+    if (i)
+        credPlaySmk(s, i);
+#ifdef REGISTERED
     else
-        credPlaySmk(pEpisode->at8f98, pEpisode->at90c0);
+        credPlaySmk(s, pEpisode->at90c0);
+#endif
     scrSetDac();
     viewResizeView(gViewSize);
     credReset();
@@ -234,16 +254,20 @@ void levelLoadDefaults(void)
         strncpy(pEpisodeInfo->at0, BloodINI->GetKeyString(buffer, "Title", buffer), 31);
         strncpy(pEpisodeInfo->at8f08, BloodINI->GetKeyString(buffer, "CutSceneA", ""), 144);
         pEpisodeInfo->at9028 = BloodINI->GetKeyInt(buffer, "CutWavA", -1);
+#ifdef REGISTERED
         if (pEpisodeInfo->at9028 == 0)
             strncpy(pEpisodeInfo->at9030, BloodINI->GetKeyString(buffer, "CutWavA", ""), 144);
         else
             pEpisodeInfo->at9030[0] = 0;
+#endif
         strncpy(pEpisodeInfo->at8f98, BloodINI->GetKeyString(buffer, "CutSceneB", ""), 144);
         pEpisodeInfo->at902c = BloodINI->GetKeyInt(buffer, "CutWavB", -1);
+#ifdef REGISTERED
         if (pEpisodeInfo->at902c == 0)
             strncpy(pEpisodeInfo->at90c0, BloodINI->GetKeyString(buffer, "CutWavB", ""), 144);
         else
             pEpisodeInfo->at90c0[0] = 0;
+#endif
 
         pEpisodeInfo->bloodbath = BloodINI->GetKeyInt(buffer, "BloodBathOnly", 0);
         pEpisodeInfo->cutALevel = BloodINI->GetKeyInt(buffer, "CutSceneALevel", 0);

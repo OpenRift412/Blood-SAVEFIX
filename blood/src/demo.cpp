@@ -44,6 +44,16 @@ int int_28F380 = 0;
 
 CDemo gDemo;
 
+#ifdef SHAREWARE
+#define RELEASEID 2
+#else
+#ifdef PLASMAPAK
+#define RELEASEID 4
+#else
+#define RELEASEID 3
+#endif
+#endif
+
 CDemo::CDemo()
 {
     int_28F380 = RELEASEID;

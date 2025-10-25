@@ -70,6 +70,8 @@
 #include "keyboard.h"
 
 
+int gMaxAlloc = 0x2000000;
+
 ErrorHandler prevErrorHandler;
 
 BOOL gExplicitSetup;
@@ -82,6 +84,12 @@ char gUserMapFilename[144];
 
 BOOL bAddUserMap;
 BOOL char_148EE9;
+
+#if APPVER_BLOODREV >= AV_BR_BL120
+BOOL bQuickStart = 1;
+#else
+BOOL bQuickStart;
+#endif
 BOOL bNoDemo;
 BOOL char_148EEB;
 BOOL char_148EEC;
@@ -102,9 +110,19 @@ BOOL gRestartGame;
 
 REGS regs;
 
-int gMaxAlloc = 0x2000000;
-
-BOOL bQuickStart = 1;
+#if APPVER_BLOODREV >= AV_BR_BL121
+#define LDIFF2 0
+#define LDIFF1 0
+#define LDIFF3 0
+#elif APPVER_BLOODREV >= AV_BR_BL120
+#define LDIFF2 0
+#define LDIFF1 -4
+#define LDIFF3 -4
+#else
+#define LDIFF2 -14
+#define LDIFF1 -64
+#define LDIFF3 -95
+#endif
 
 BOOL CheckIfWindows(void)
 {
@@ -127,19 +145,19 @@ void func_10148(void)
     char temp[20];
     IniFile *iniFile = new IniFile(char_148ef0);
     if (!iniFile || !iniFile->SectionExists("options"))
-        ThrowError(206)("Section [%s] expected in %s", "options", char_148ef0);
+        ThrowError(206+LDIFF2)("Section [%s] expected in %s", "options", char_148ef0);
     char *val = iniFile->GetKeyString("options", "Online", "");
     strncpy(temp, val, 20);
     if (!stricmp(temp, "mpath"))
     {
         if (func_83370() < 0)
-            ThrowError(219)("Can't initailize MPATH Service.  Please check your installation.");
+            ThrowError(219+LDIFF2)("Can't initailize MPATH Service.  Please check your installation.");
         gSyncRate = 4;
     }
     else if (!stricmp(temp, "engage"))
     {
         if (func_83D80())
-            ThrowError(233)("Can't initailize ENGAGE Service.  Please check your installation.");
+            ThrowError(233+LDIFF2)("Can't initailize ENGAGE Service.  Please check your installation.");
     }
     else if (!stricmp(temp, "commit"))
     {
@@ -148,7 +166,7 @@ void func_10148(void)
     {
         int status = tenBloodInit();
         if (status)
-            ThrowError(252)("Error %d initializing TEN", status);
+            ThrowError(252+LDIFF2)("Error %d initializing TEN", status);
         else
             tioPrint("initialized TEN");
     }
@@ -158,11 +176,11 @@ void func_10148(void)
     else if (!stricmp(temp, "heat"))
     {
         if (func_835B0() < 0)
-            ThrowError(269)("Cannot initialize the HEAT service.  Please check your installation.");
+            ThrowError(269+LDIFF2)("Cannot initialize the HEAT service.  Please check your installation.");
     }
     else
     {
-        ThrowError(282)("Unknown Online Service specified in %s", char_148ef0);
+        ThrowError(282+LDIFF2)("Unknown Online Service specified in %s", char_148ef0);
     }
     delete iniFile;
 }
@@ -171,7 +189,7 @@ void func_10324(void)
 {
     IniFile *iniFile = new IniFile(char_148ef0);
     if (!iniFile || !iniFile->SectionExists("options"))
-        ThrowError(300)("Section [%s] expected in %s", "options", char_148ef0);
+        ThrowError(300+LDIFF2)("Section [%s] expected in %s", "options", char_148ef0);
     if (char_148EEC)
     {
         gPacketStartGame.gameType = iniFile->GetKeyHex("options", "GameType", 2);
@@ -183,7 +201,11 @@ void func_10324(void)
         gPacketStartGame.monsterSettings = iniFile->GetKeyHex("options", "MonsterSettings", 1);
         gPacketStartGame.weaponSettings = iniFile->GetKeyHex("options", "WeaponSettings", 1);
         gPacketStartGame.itemSettings = iniFile->GetKeyHex("options", "ItemSettings", 1);
+#ifdef SHAREWARE
+        gPacketStartGame.respawnSettings = 0;
+#else
         gPacketStartGame.respawnSettings = iniFile->GetKeyHex("options", "RespawnSettings", 0);
+#endif
         gPacketStartGame.unk = 0;
         gPacketStartGame.userMapName[0] = 0;
         char *um = iniFile->GetKeyString("options", "UserMapName", "");
@@ -582,7 +604,9 @@ void StartLevel(GAMEOPTIONS *gameOptions)
         }
     }
     gameOptions->uGameFlags &= ~3;
+#if APPVER_BLOODREV >= AV_BR_BL120
     scrSetDac();
+#endif
     PreloadCache();
     InitMirrors();
     gFrameClock = 0;
@@ -1026,12 +1050,18 @@ void ShowUsage(void)
     puts("-skill        Set player handicap; Range:0..4; Default:2; (NOT difficulty level.)");
     puts("-quick        Skip Intro screens and get right to the game");
     puts("-pname        Override player name setting from config file");
+#ifdef SHAREWARE
+    puts("-map          Specify a user map (registered version only)");
+    puts("-playback     Play back a demo   (registered version only)");
+    puts("-record       Record a demo      (registered version only)");
+#else
     puts("-map          Specify a user map");
     puts("-playback     Play back a demo");
     puts("-record       Record a demo");
     puts("-art          Specify an art base file name");
     puts("-snd          Specify an RFF Sound file name");
     puts("-RFF          Specify an RFF file for Blood game resources");
+#endif
     puts("-ini          Specify an INI file name (default is blood.ini)");
     exit(0);
 }
@@ -1063,18 +1093,14 @@ SWITCH switches[] = {
     { "silentaim", 23, 0 },
     { "ten", 24, 0 },
     { "nodemo", 25, 0 },
+#ifdef REGISTERED
     { "art", 26, 1 },
     { "snd", 27, 1 },
     { "RFF", 28, 1 },
+#endif
     { "MAXALLOC", 29, 1 },
     { 0 }
 };
-
-#if APPVER_BLOODREV >= AV_BR_BL121
-#define LDIFF1 0
-#else
-#define LDIFF1 -4
-#endif
 
 void ParseOptions(void)
 {
@@ -1291,10 +1317,17 @@ void main(void)
 
     sprintf(buffer, "%ld MB Memory Used", allocMemory >> 20);
     tioPrint(buffer);
-    if (allocMemory < 0x17f8680)
+#if APPVER_BLOODREV >= AV_BR_BL120
+#define MINMEMORY 0x17f8680
+#define MINMEMORYMB 23
+#else
+#define MINMEMORY 0xe6f000
+#define MINMEMORYMB 14
+#endif
+    if (allocMemory < MINMEMORY)
     {
         tioPrint("");
-        sprintf(buffer, "LOW MEMORY WARNING: Blood requires %dmb of free memory", 23);
+        sprintf(buffer, "LOW MEMORY WARNING: Blood requires %dmb of free memory", MINMEMORYMB);
         tioPrint(buffer);
         tioPrint("You may experience problems when running Blood with low memory");
         if (gInWindows && int_28E3D4 != 1)
@@ -1312,18 +1345,23 @@ void main(void)
     tioPrint("Creating standard color lookups");
     scrCreateStdColors();
     tioPrint("Loading tiles");
+#ifdef SHAREWARE
+    if (!tileInit(0,"SHARE%03i.ART"))
+        ThrowError(2233+LDIFF3)("SHARE###.ART files not found");
+#else
     if (pUserTiles)
     {
         strcpy(buffer,pUserTiles);
         strcat(buffer,"%03i.ART");
         if (!tileInit(0,buffer))
-            ThrowError(2243+LDIFF1)("User specified ART files not found");
+            ThrowError(2243+LDIFF3)("User specified ART files not found");
     }
     else
     {
         if (!tileInit(0,NULL))
-            ThrowError(2248+LDIFF1)("TILES###.ART files not found");
+            ThrowError(2248+LDIFF3)("TILES###.ART files not found");
     }
+#endif
     powerupInit();
     tioPrint("Loading cosine table");
     trigInit(gSysRes);
@@ -1346,6 +1384,9 @@ void main(void)
     LockClockStrobe();
     timerRegisterClient(ClockStrobe, 120);
     timerInstall();
+#ifdef SHAREWARE
+    bNoCDAudio = 1;
+#endif
     int_148E14 = -1;
     if (Redbook.cdrom_setup() == 0 || !Redbook.cdrom_installed() || bNoCDAudio || gGameOptions.nGameType != GAMETYPE_0)
     {
@@ -1401,11 +1442,15 @@ void main(void)
     gWeather.Initialize((char*)frameplace, windowx1, windowy1, windowx2 - windowx1 + 1, windowy2 - windowy1 + 1, gYLookup, 0, 32, -1);
     gChoke.func_83ff0(518, func_84230);
     levelLoadDefaults();
+#ifdef SHAREWARE
+    bAddUserMap = 0;
+#else
     if (bAddUserMap)
     {
         levelAddUserMap(gUserMapFilename);
         gStartNewGame = 1;
     }
+#endif
     SetupMenus();
 _RESTART:
     setview(0,0,xdim-1,ydim-1);
@@ -1551,6 +1596,40 @@ _RESTARTNOLOGO:
         netSendEmptyPackets();
         uninitmultiplayers();
     }
+#ifdef SHAREWARE
+    if (!gTenQuit && !char_148E29)
+    {
+        setview(0, 0, xdim - 1, ydim - 1);
+        clearview(0);
+        rotatesprite(160<<16,100<<16,65536,0,2044,0,0,10,0,0,xdim-1,ydim-1);
+        scrNextPage();
+
+        int t = gGameClock + 600;
+        while (t > gGameClock)
+        {
+            if (keyGet() != 0)
+                break;
+        }
+        clearview(0);
+        rotatesprite(160<<16,100<<16,65536,0,2592,0,0,10,0,0,xdim-1,ydim-1);
+        scrNextPage();
+        t = gGameClock + 600;
+        while (t > gGameClock)
+        {
+            if (keyGet() != 0)
+                break;
+        }
+        clearview(0);
+        rotatesprite(160<<16,100<<16,65536,0,2593,0,0,10,0,0,xdim-1,ydim-1);
+        scrNextPage();
+        t = gGameClock + 600;
+        while (t > gGameClock)
+        {
+            if (keyGet() != 0)
+                break;
+        }
+    }
+#endif
     setvmode(gOldDisplayMode);
     sndTerm();
     timerRemove();
@@ -1571,10 +1650,12 @@ _RESTARTNOLOGO:
         Redbook.cdrom_shutdown();
     }
     errSetHandler(prevErrorHandler);
+#ifdef REGISTERED
     if (int_148E0C)
         system(int_148E0C);
     else if (int_148E10)
         system(int_148E10);
+#endif
     if (char_27B2CC && !gTenQuit && !char_148E29)
         printf("Blood exited the network game because the master computer quit.\n");
 }

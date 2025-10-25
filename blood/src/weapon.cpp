@@ -265,6 +265,15 @@ t_WeaponModes weaponModes[] = {
     { 1, 3 },
     { 1, 4 },
     { 1, 5 },
+#ifdef SHAREWARE
+    { 0, -1 },
+    { 0, -1 },
+    { 0, -1 },
+    { 0, -1 },
+    { 0, -1 },
+    { 0, -1 },
+    { 0, -1 },
+#else
     { 1, 6 },
     { 1, 7 },
     { 1, 8 },
@@ -272,6 +281,7 @@ t_WeaponModes weaponModes[] = {
     { 1, 10 },
     { 1, 11 },
     { 0, -1 },
+#endif
 };
 
 struct WEAPONTRACK
@@ -283,8 +293,13 @@ struct WEAPONTRACK
     int at10; // predict
 };
 
+#ifdef SHAREWARE
+int OrderNext[] = { 1, 2, 3, 4, 5, 6, 1, 1, 1, 1, 1, 1, 1, 1 };
+int OrderPrev[] = { 6, 6, 1, 2, 3, 4, 5, 6, 6, 6, 6, 6, 6, 6 };
+#else
 int OrderNext[] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 1 };
 int OrderPrev[] = { 12, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 1 };
+#endif
 
 WEAPONTRACK gWeaponTrack[] = {
     { 0, 0, 0, 0, 0 },

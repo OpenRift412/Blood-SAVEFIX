@@ -21,6 +21,7 @@
 #include "inifile.h"
 #include "misc.h"
 #include "qav.h"
+#include "gfx.h"
 #include "resource.h"
 
 #define kMaxGameMenuItems 32
@@ -50,11 +51,19 @@ class CMenuTextMgr
 {
 public:
     int at0;
-    char __f_4[16];
+    DICTNODE* m_hFont;
+    QFONT* f_8;
+    int f_c;
+    int f_10;
     CMenuTextMgr();
     ~CMenuTextMgr();
     void DrawText(char *pString, int nFont, int x, int y, int nShade, int nPalette, BOOL shadow );
     void GetFontInfo(int nFont, char *pString, int *pXSize, int *pYSize);
+#if APPVER_BLOODREV < AV_BR_BL120
+    void LockFont(int);
+    void UnlockFont(void);
+    void GetFontInfo(char *pString, int *pXSize, int *pYSize);
+#endif
 };
 
 class CGameMenu;

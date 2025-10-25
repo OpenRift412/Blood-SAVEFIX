@@ -192,6 +192,16 @@ public:
     virtual void Save(void);
 };
 
+#ifdef SHAREWARE
+#define RELEASEID 1
+#else
+#ifdef PLASMAPAK
+#define RELEASEID 4
+#else
+#define RELEASEID 3
+#endif
+#endif
+
 void MyLoadSave::Load(void)
 {
     int nNumSprites;
@@ -258,7 +268,9 @@ void MyLoadSave::Load(void)
     Read(&char_1A76C6, sizeof(char_1A76C6));
     Read(&char_1A76C8, sizeof(char_1A76C8));
     Read(&char_1A76C7, sizeof(char_1A76C7));
+#ifdef REGISTERED
     Read(&char_19AE44, sizeof(char_19AE44));
+#endif
     Read(gStatCount, sizeof(gStatCount));
     Read(nextXSprite, sizeof(nextXSprite));
     Read(nextXWall, sizeof(nextXWall));
@@ -363,7 +375,9 @@ void MyLoadSave::Save(void)
     Write(&char_1A76C6, sizeof(char_1A76C6));
     Write(&char_1A76C8, sizeof(char_1A76C8));
     Write(&char_1A76C7, sizeof(char_1A76C7));
+#ifdef REGISTERED
     Write(&char_19AE44, sizeof(char_19AE44));
+#endif
     Write(gStatCount, sizeof(gStatCount));
     Write(nextXSprite, sizeof(nextXSprite));
     Write(nextXWall, sizeof(nextXWall));

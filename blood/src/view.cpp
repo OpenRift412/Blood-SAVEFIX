@@ -50,6 +50,24 @@
 
 #include "actor.h"
 
+#if APPVER_BLOODREV >= AV_BR_BL120
+#define LDIFF1 0
+#define LDIFF2 0
+#define LDIFF3 0
+#define LDIFF4 0
+#define LDIFF5 0
+#define LDIFF6 0
+#define LDIFF7 0
+#else
+#define LDIFF1 -101
+#define LDIFF2 -127
+#define LDIFF3 -149
+#define LDIFF4 -153
+#define LDIFF5 -158
+#define LDIFF6 -163
+#define LDIFF7 -172
+#endif
+
 int gViewMode = 3;
 int gZoom = 1024;
 
@@ -148,7 +166,9 @@ VIEW predictFifo[256];
 
 int gInterpolate;
 
+#if APPVER_BLOODREV >= AV_BR_BL120
 FONT gFont[5];
+#endif
 
 int int_172CE0[16][3];
 
@@ -184,6 +204,7 @@ void RotateXY(long *pX, long *pY, long *pZ, int ang)
     *pY = dmulscale30r(oX,angSin,oY,angCos);
 }
 
+#if APPVER_BLOODREV >= AV_BR_BL120
 void viewSetFont(int id, int tile, int space)
 {
     if (id < 0 || id >= 5 || tile < 0 || tile >= kMaxTiles)
@@ -232,6 +253,8 @@ void viewGetFontInfo(int nFont, char* pString, int* pXSize, int* pYSize)
             *pYSize = pFont->ySize;
     }
 }
+#endif
+
 void viewUpdatePages(void)
 {
     pcBackground = numpages;
@@ -581,7 +604,7 @@ static void fakeMoveDude(SPRITE *pSprite)
     PLAYER *pPlayer = NULL;
     if (IsPlayerSprite(pSprite))
         pPlayer = &gPlayer[pSprite->type - kDudePlayer1];
-    dassert(pSprite->type >= kDudeBase && pSprite->type < kDudeMax, 816);
+    dassert(pSprite->type >= kDudeBase && pSprite->type < kDudeMax, 816+LDIFF1);
     int top, bottom;
     GetSpriteExtents(pSprite, &top, &bottom);
     top += predict.at58 - pSprite->z;
@@ -590,7 +613,7 @@ static void fakeMoveDude(SPRITE *pSprite)
     int var5c = (predict.at58-top)/4;
     int clipdist = pSprite->clipdist<<2;
     int nSector = predict.at68;
-    dassert(nSector >= 0 && nSector < kMaxSectors, 828);
+    dassert(nSector >= 0 && nSector < kMaxSectors, 828+LDIFF1);
     if (predict.at5c || predict.at60)
     {
         if (pPlayer && gNoClip)
@@ -618,7 +641,7 @@ static void fakeMoveDude(SPRITE *pSprite)
                     nSector = nSector2;
             }
 
-            dassert(nSector >= 0, 866);
+            dassert(nSector >= 0, 866+LDIFF1);
 
             pSprite->cstat = cstatbak;
         }
@@ -644,7 +667,7 @@ static void fakeMoveDude(SPRITE *pSprite)
     }
     if (nSector != predict.at68)
     {
-        dassert(nSector >= 0 && nSector < kMaxSectors, 910);
+        dassert(nSector >= 0 && nSector < kMaxSectors, 910+LDIFF1);
         predict.at68 = nSector;
     }
     BOOL var8 = 0;
@@ -810,12 +833,12 @@ void fakeActAirDrag(SPRITE *pSprite, int num)
     int vbp = 0;
     int v4 = 0;
     int nSector = predict.at68;
-    dassert(nSector >= 0 && nSector < kMaxSectors, 1175);
+    dassert(nSector >= 0 && nSector < kMaxSectors, 1175+LDIFF1);
     SECTOR *pSector = &sector[nSector];
     int nXSector = pSector->extra;
     if (nXSector > 0)
     {
-        dassert(nXSector < kMaxXSectors, 1180);
+        dassert(nXSector < kMaxXSectors, 1180+LDIFF1);
         XSECTOR *pXSector = &xsector[nXSector];
         if (pXSector->at35_1 && (pXSector->at37_6 || pXSector->at1_7))
         {
@@ -837,14 +860,14 @@ static void fakeActProcessSprites(void)
     if (pSprite->statnum != 6)
         return;
     int nXSprite = pSprite->extra;
-    dassert(nXSprite > 0 && nXSprite < kMaxXSprites, 1209);
+    dassert(nXSprite > 0 && nXSprite < kMaxXSprites, 1209+LDIFF1);
     int nSector = predict.at68;
     int nXSector = sector[nSector].extra;
     XSECTOR *pXSector = NULL;
     if (nXSector > 0)
     {
-        dassert(nXSector > 0 && nXSector < kMaxXSectors, 1217);
-        dassert(xsector[nXSector].reference == nSector, 1218);
+        dassert(nXSector > 0 && nXSector < kMaxXSectors, 1217+LDIFF1);
+        dassert(xsector[nXSector].reference == nSector, 1218+LDIFF1);
         pXSector = &xsector[nXSector];
     }
     if (pXSector)
@@ -932,7 +955,7 @@ void viewClearInterpolations(void)
 void viewAddInterpolation(void *data, INTERPOLATE_TYPE type)
 {
     if (nInterpolations == 4096)
-        ThrowError(1328)("Too many interpolations");
+        ThrowError(1328+LDIFF1)("Too many interpolations");
     INTERPOLATE *pInterpolate = &gInterpolation[nInterpolations++];
     pInterpolate->pointer = data;
     pInterpolate->type = type;
@@ -987,7 +1010,7 @@ void RestoreInterpolations(void)
 
 void viewDrawChar(QFONT *pFont, char chr, int x, int y, byte *pLookup)
 {
-    dassert(pFont != NULL, 1400);
+    dassert(pFont != NULL, 1400+LDIFF1);
     QFONTCHAR *pCharInfo = &pFont->at20[chr];
     if (pCharInfo->w == 0 || pCharInfo->h == 0)
         return;
@@ -1040,17 +1063,18 @@ void viewDrawChar(QFONT *pFont, char chr, int x, int y, byte *pLookup)
     }
 }
 
-void viewDrawText(int nFont, char *pString, int x, int y, int nShade, int nPalette, int position, BOOL shadow)
+void viewDrawText(int nFont, char * string, int x, int y, int nShade, int nPalette, int position, BOOL shadow)
 {
+#if APPVER_BLOODREV >= AV_BR_BL120
     char *s;
 
-    if (nFont < 0 || nFont >= 5 || !pString) return;
+    if (nFont < 0 || nFont >= 5 || !string) return;
     FONT *pFont = &gFont[nFont];
 
     if (position != 0)
     {
         int width = -pFont->space;
-        for (s = pString; *s; s++)
+        for (s = string; *s; s++)
         {
             int nTile = ((*s-32)&127)+pFont->tile;
             if (tilesizx[nTile] == 0 || tilesizy[nTile] == 0)
@@ -1061,7 +1085,7 @@ void viewDrawText(int nFont, char *pString, int x, int y, int nShade, int nPalet
             width >>= 1;
         x -= width;
     }
-    for (s = pString; *s; s++)
+    for (s = string; *s; s++)
     {
         int nTile = ((*s-32)&127)+pFont->tile;
         if (tilesizx[nTile] == 0 || tilesizy[nTile] == 0)
@@ -1075,6 +1099,41 @@ void viewDrawText(int nFont, char *pString, int x, int y, int nShade, int nPalet
         viewDrawSprite(tx<<16, ty<<16, 65536, 0, nTile, nShade, nPalette, 26, 0, 0, xdim-1, ydim-1);
         x += tilesizx[nTile]+pFont->space;
     }
+#else
+    char *s;
+
+    dassert(string != NULL, 1369);
+    DICTNODE *hFont = gSysRes.Lookup(nFont, "QFN");
+    dassert(hFont != NULL, 1372);
+
+    QFONT *pFont = (QFONT*)gSysRes.Lock(hFont);
+    byte* pPalookup = palookup[nPalette] + (getpalookup(0, nShade) << 8);
+    byte* pShadowPal = palookup[nPalette] + (getpalookup(0, 127) << 8);
+
+    setupmvlineasm(16);
+
+    if (position != 0)
+    {
+        int width = -pFont->at11;
+        for (s = string; *s; s++)
+        {
+            width += pFont->at20[*s].ox + pFont->at11;
+        }
+        if (position == 1)
+            width >>= 1;
+        x -= width;
+    }
+    for (s = string; *s; s++)
+    {
+        if (shadow)
+        {
+            viewDrawChar(pFont, *s, x + 1, y + 1, pShadowPal);
+        }
+        viewDrawChar(pFont, *s, x, y, pPalookup);
+        x += pFont->at20[*s].ox + pFont->at11;
+    }
+    gSysRes.Unlock(hFont);
+#endif
 }
 
 void viewTileSprite(int nTile, int nShade, int nPalette, int x1, int y1, int x2, int y2)
@@ -1088,7 +1147,7 @@ void viewTileSprite(int nTile, int nShade, int nPalette, int x1, int y1, int x2,
     if (!rect1)
         return;
 
-    dassert(nTile >= 0 && nTile < kMaxTiles, 1544);
+    dassert(nTile >= 0 && nTile < kMaxTiles, 1544+LDIFF2);
     int width = tilesizx[nTile];
     int height = tilesizy[nTile];
     int pixels = width * height;
@@ -1432,6 +1491,7 @@ static void UpdateStatusBar(int arg)
 
 #define kLensSize 80
 
+#if APPVER_BLOODREV >= AV_BR_BL120
 enum FONTTYPE {
     kFont0 = 0,
     kFont1,
@@ -1439,20 +1499,29 @@ enum FONTTYPE {
     kFont3,
     kFont4,
 };
+#else
+#define kFont0 0
+#define kFont1 1
+#define kFont2 2
+#define kFont3 3
+#define kFont4 4
+#endif
 
 void viewInit(void)
 {
     tioPrint("Initializing status bar");
     InitStatusBar();
+#if APPVER_BLOODREV >= AV_BR_BL120
     viewSetFont(0, 4096, 0);
     viewSetFont(1, 4192, 1);
     viewSetFont(2, 4288, 1);
     viewSetFont(3, 4384, 1);
     viewSetFont(4, 4480, 0);
+#endif
 
     DICTNODE *hLens = gSysRes.Lookup("LENS", "DAT");
-    dassert(hLens != NULL, 2143);
-    dassert(gSysRes.Size(hLens) == kLensSize * kLensSize * sizeof(int), 2144);
+    dassert(hLens != NULL, 2143+LDIFF3);
+    dassert(gSysRes.Size(hLens) == kLensSize * kLensSize * sizeof(int), 2144+LDIFF3);
 
     lensTable = (int*)gSysRes.Lock(hLens);
     byte *data = tileAllocTile(4077, kLensSize, kLensSize);
@@ -1625,7 +1694,7 @@ WEAPONICON gWeaponIcon[] = {
 
 SPRITE *viewAddEffect(int nTSprite, VIEW_EFFECT nViewEffect)
 {
-    dassert(nViewEffect >= 0 && nViewEffect < kViewEffectMax, 2375);
+    dassert(nViewEffect >= 0 && nViewEffect < kViewEffectMax, 2375+LDIFF4);
     SPRITE *pTSprite = &tsprite[nTSprite];
     if (gDetail < effectDetail[nViewEffect]) return NULL;
 
@@ -1733,7 +1802,7 @@ SPRITE *viewAddEffect(int nTSprite, VIEW_EFFECT nViewEffect)
                     pNSprite->x = pTSprite->x + mulscale30((i+1)<<7, Cos(nAng));
                     pNSprite->y = pTSprite->y + mulscale30((i+1)<<7, Sin(nAng));
                     pNSprite->z = pTSprite->z;
-                    dassert(nSector >= 0 && nSector < kMaxSectors, 2508);
+                    dassert(nSector >= 0 && nSector < kMaxSectors, 2508+LDIFF4);
                     FindSector(pNSprite->x, pNSprite->y, pNSprite->z, &nSector);
                     pNSprite->sectnum = nSector;
                     pNSprite->owner = pTSprite->owner;
@@ -1888,7 +1957,7 @@ SPRITE *viewAddEffect(int nTSprite, VIEW_EFFECT nViewEffect)
             }
             case VIEW_EFFECT_12:
             {
-                dassert(pTSprite->type >= kDudePlayer1 && pTSprite->type <= kDudePlayer8, 2682);
+                dassert(pTSprite->type >= kDudePlayer1 && pTSprite->type <= kDudePlayer8, 2682+LDIFF4);
                 PLAYER *pPlayer = &gPlayer[pTSprite->type-kDudePlayer1];
                 if (gWeaponIcon[pPlayer->atbd].nTile >= 0)
                 {
@@ -1915,7 +1984,7 @@ void viewProcessSprites(int cX, int cY, int cZ)
     int nTSprite, nOctant;
     int nXSprite;
     long dX, dY;
-    dassert(spritesortcnt <= kMaxViewSprites, 2713);
+    dassert(spritesortcnt <= kMaxViewSprites, 2713+LDIFF4);
     int nViewSprites = spritesortcnt;
     for (nTSprite = nViewSprites-1; nTSprite >= 0; nTSprite--)
     {
@@ -1953,7 +2022,7 @@ void viewProcessSprites(int cX, int cY, int cZ)
             case 0:
                 if (nXSprite > 0)
                 {
-                    dassert(nXSprite < kMaxXSprites, 2778);
+                    dassert(nXSprite < kMaxXSprites, 2778+LDIFF4);
                     switch (pTSprite->type)
                     {
                     case 20:
@@ -2050,7 +2119,7 @@ void viewProcessSprites(int cX, int cY, int cZ)
         pTSprite->shade = ClipRange(nShade, -128, 127);
         if ((pTSprite->flags&kSpriteFlag4) && sprite[pTSprite->owner].owner == 3)
         {
-            dassert(pTXSprite != NULL, 2892);
+            dassert(pTXSprite != NULL, 2892+LDIFF5);
             pTSprite->picnum = 2272 + 2*pTXSprite->atb_4;
             pTSprite->xrepeat = 48;
             pTSprite->yrepeat = 48;
@@ -2186,7 +2255,7 @@ void viewProcessSprites(int cX, int cY, int cZ)
                 case 303:
                     if (pTSprite->statnum == 14)
                     {
-                        dassert(pTXSprite != NULL, 3034);
+                        dassert(pTXSprite != NULL, 3034+LDIFF5);
                         if (pTXSprite->target == gView->at5b)
                         {
                             pTSprite->xrepeat = 0;
@@ -2218,7 +2287,7 @@ void viewProcessSprites(int cX, int cY, int cZ)
                 if (pTSprite->type == 212 && pXSprite2->at34 == &hand13A3B4)
                 {
                     SPRITE *pTTarget = &sprite[pTXSprite->target];
-                    dassert(pTXSprite != NULL && pTTarget != NULL, 3065);
+                    dassert(pTXSprite != NULL && pTTarget != NULL, 3065+LDIFF5);
                     if (pTTarget->type >= kDudePlayer1 && pTTarget->type <= kDudePlayer8)
                     {
                         pTSprite->xrepeat = 0;
@@ -2431,7 +2500,7 @@ static void CalcOtherPosition(SPRITE *pSprite, long *pX, long *pY, long *pZ, int
     vZ -= (16<<8);
     short bakCstat = pSprite->cstat;
     pSprite->cstat &= ~256;
-    dassert(*vsectnum >= 0 && *vsectnum < kMaxSectors, 3294);
+    dassert(*vsectnum >= 0 && *vsectnum < kMaxSectors, 3294+LDIFF5);
     FindSector(*pX, *pY, *pZ, vsectnum);
     hitscan(*pX, *pY, *pZ, *vsectnum, vX, vY, vZ, &nHSector, &nHWall, &nHSprite, &hX, &hY, &hZ, CLIPMASK1);
     dX = hX-*pX;
@@ -2453,7 +2522,7 @@ static void CalcOtherPosition(SPRITE *pSprite, long *pX, long *pY, long *pZ, int
     if (othercameradist > 65536)
         othercameradist = 65536;
     othercameraclock = gGameClock;
-    dassert(*vsectnum >= 0 && *vsectnum < kMaxSectors, 3322);
+    dassert(*vsectnum >= 0 && *vsectnum < kMaxSectors, 3322+LDIFF5);
     FindSector(*pX, *pY, *pZ, vsectnum);
     pSprite->cstat = bakCstat;
 }
@@ -2468,7 +2537,7 @@ static void CalcPosition(SPRITE *pSprite, long *pX, long *pY, long *pZ, int *vse
     vZ -= (16<<8);
     short bakCstat = pSprite->cstat;
     pSprite->cstat &= ~256;
-    dassert(*vsectnum >= 0 && *vsectnum < kMaxSectors, 3344);
+    dassert(*vsectnum >= 0 && *vsectnum < kMaxSectors, 3344+LDIFF5);
     FindSector(*pX, *pY, *pZ, vsectnum);
     hitscangoalx = hitscangoaly = 0x1fffffff;
     hitscan(*pX, *pY, *pZ, *vsectnum, vX, vY, vZ, &nHSector, &nHWall, &nHSprite, &hX, &hY, &hZ, CLIPMASK1);
@@ -2491,7 +2560,7 @@ static void CalcPosition(SPRITE *pSprite, long *pX, long *pY, long *pZ, int *vse
     if (cameradist > 65536)
         cameradist = 65536;
     cameraclock = gGameClock;
-    dassert(*vsectnum >= 0 && *vsectnum < kMaxSectors, 3373);
+    dassert(*vsectnum >= 0 && *vsectnum < kMaxSectors, 3373+LDIFF5);
     FindSector(*pX, *pY, *pZ, vsectnum);
     pSprite->cstat = bakCstat;
 }
@@ -2565,9 +2634,9 @@ void viewSetErrorMessage(char *pMessage)
 static void DoLensEffect(void)
 {
     byte *d = (byte*)waloff[4077];
-    dassert(d != NULL, 3480);
+    dassert(d != NULL, 3480+LDIFF6);
     byte *s = (byte*)waloff[4079];
-    dassert(s != NULL, 3482);
+    dassert(s != NULL, 3482+LDIFF6);
     for (int i = 0; i < kLensSize*kLensSize; i++, d++)
     {
         if (lensTable[i] >= 0)
@@ -2857,7 +2926,7 @@ void viewDrawScreen(void)
         {
             SPRITE *pSprite = &sprite[nSprite];
             int nXSprite = pSprite->extra;
-            dassert(nXSprite > 0 && nXSprite < kMaxXSprites, 3812);
+            dassert(nXSprite > 0 && nXSprite < kMaxXSprites, 3812+LDIFF7);
             XSPRITE *pXSprite = &xsprite[nXSprite];
             if (TestBitString(gotsector, pSprite->sectnum))
             {
@@ -2914,7 +2983,7 @@ void viewDrawScreen(void)
         gView->pSprite->cstat = bakCstat;
         if (v78 || vc)
         {
-            dassert(waloff[ TILTBUFFER ] != NULL, 3874);
+            dassert(waloff[ TILTBUFFER ] != NULL, 3874+LDIFF7);
             setviewback();
             byte vrc = 70;
             if (vc)

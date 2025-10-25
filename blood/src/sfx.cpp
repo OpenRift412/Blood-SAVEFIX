@@ -18,6 +18,7 @@
 #include <i86.h>
 #include "typedefs.h"
 #include "build.h"
+#include "globals.h"
 #include "config.h"
 #include "error.h"
 #include "fx_man.h"
@@ -28,6 +29,12 @@
 #include "sfx.h"
 #include "sound.h"
 #include "trig.h"
+
+#if APPVER_BLOODREV >= AV_BR_BL120
+#define LDIFF1 0
+#else
+#define LDIFF1 1
+#endif
 
 POINT2D earL, earR, earL0, earR0; // Ear position
 VECTOR2D earVL, earVR; // Ear velocity ?
@@ -66,8 +73,14 @@ void sfxInit(void)
     for (int i = 0; i < 256; i++)
         BonkleCache[i] = &Bonkle[i];
     nBonkles = 0;
+#if APPVER_BLOODREV >= AV_BR_BL120
     if (FXDevice != 8) // SoundScape
         int_20E12C = FX_GetMaxReverbDelay();
+#else
+    int_20E12C = FX_GetMaxReverbDelay();
+    if (FXDevice == 8) // SoundScape
+        int_20E12C = 0;
+#endif
 }
 
 void sfxTerm()
@@ -137,7 +150,7 @@ static void Calc3DValues(BONKLE *pBonkle)
 void sfxPlay3DSound(int x, int y, int z, int soundId, int nSector)
 {
     if (soundId < 0)
-        ThrowError(207)("Invalid sound ID");
+        ThrowError(207+LDIFF1)("Invalid sound ID");
     
     DICTNODE *hRes = gSoundRes.Lookup(soundId, "SFX");
     if (!hRes)
@@ -149,7 +162,13 @@ void sfxPlay3DSound(int x, int y, int z, int soundId, int nSector)
         return;
 
     int v1c, v18;
-    v1c = v18 = mulscale16(pEffect->pitch, GetRate(pEffect->format));
+    v1c = v18 = mulscale16(pEffect->pitch, GetRate(
+#ifdef SHAREWARE
+        1
+#else
+        pEffect->format
+#endif
+    ));
     if (FXDevice == -1)
         return;
     if (nBonkles >= 256)
@@ -166,7 +185,11 @@ void sfxPlay3DSound(int x, int y, int z, int soundId, int nSector)
     pBonkle->at8 = hRes;
     pBonkle->at1c = pEffect->relVol;
     pBonkle->at18 = v18;
+#ifdef SHAREWARE
+    pBonkle->at3c = 1;
+#else
     pBonkle->at3c = pEffect->format;
+#endif
     int size = Resource::Size(hRes);
     char *pData = (char*)gSoundRes.Lock(hRes);
     Calc3DValues(pBonkle);
@@ -207,7 +230,13 @@ void sfxPlay3DSound(SPRITE *pSprite, int soundId, int a3, int a4)
     if (size <= 0)
         return;
     int v14;
-    v14 = mulscale16(pEffect->pitch, GetRate(pEffect->format));
+    v14 = mulscale16(pEffect->pitch, GetRate(
+#ifdef SHAREWARE
+        1
+#else
+        pEffect->format
+#endif
+    ));
     if (FXDevice == -1)
         return;
     BONKLE *pBonkle;
@@ -422,12 +451,21 @@ void sfxUpdate3DSounds(void)
     }
 }
 
-void sfxSetReverbDelay(int delay);
+void sfxSetReverbDelay(int delay)
+{
+#if APPVER_BLOODREV >= AV_BR_BL120
+    if (FXDevice == 8)
+        return;
+#endif
+    FX_SetReverbDelay(delay);
+}
 
 void sfxSetReverb(BOOL toggle)
 {
+#if APPVER_BLOODREV >= AV_BR_BL120
     if (FXDevice == 8)
         return;
+#endif
     if (toggle)
     {
         FX_SetFastReverb(1);
@@ -439,8 +477,10 @@ void sfxSetReverb(BOOL toggle)
 
 void sfxSetReverb2(BOOL toggle)
 {
+#if APPVER_BLOODREV >= AV_BR_BL120
     if (FXDevice == 8)
         return;
+#endif
     if (toggle)
     {
         FX_SetFastReverb(1);
@@ -448,11 +488,4 @@ void sfxSetReverb2(BOOL toggle)
     }
     else
         FX_SetFastReverb(0);
-}
-
-void sfxSetReverbDelay(int delay)
-{
-    if (FXDevice == 8)
-        return;
-    FX_SetReverbDelay(delay);
 }

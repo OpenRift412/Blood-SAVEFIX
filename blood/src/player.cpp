@@ -45,6 +45,12 @@
 #include "weapon.h"
 #include "view.h"
 
+#if APPVER_BLOODREV >= AV_BR_BL120
+#define LDIFF1 0
+#else
+#define LDIFF1 -7
+#endif
+
 static void PlayerSurvive(int, int);
 static void PlayerKeelsOver(int, int);
 
@@ -796,6 +802,15 @@ void playerReset(PLAYER *pPlayer)
         pPlayer->atcb[i] = gInfiniteAmmo;
         pPlayer->atd9[i] = 0;
     }
+#ifdef SHAREWARE
+    pPlayer->atcb[7] = 0;
+    pPlayer->atcb[8] = 0;
+    pPlayer->atcb[9] = 0;
+    pPlayer->atcb[10] = 0;
+    pPlayer->atcb[11] = 0;
+    pPlayer->atcb[12] = 0;
+    pPlayer->atcb[13] = 0;
+#endif
     pPlayer->atcb[1] = 1;
     pPlayer->atbd = 0;
     pPlayer->at2a = -1;
@@ -1464,6 +1479,7 @@ static void ProcessInput(PLAYER *pPlayer)
             pPlayer->at372 = ClipLow(pPlayer->at372-4*(6-gGameOptions.nDifficulty), 0);
         if (pPlayer->at372 <= 0 && pPlayer->at376)
         {
+#if APPVER_BLOODREV >= AV_BR_BL120
             SPRITE *pSprite2 = func_36878(pPlayer->pSprite, 212, pPlayer->pSprite->clipdist<<1, 0);
             int nSprite = pPlayer->pSprite->index;
             pSprite2->ang = (pPlayer->pSprite->ang+1024)&2047;
@@ -1472,6 +1488,13 @@ static void ProcessInput(PLAYER *pPlayer)
             xvel[pSprite2->index] = xvel[nSprite] + mulscale(0x155555, x, 14);
             yvel[pSprite2->index] = yvel[nSprite] + mulscale(0x155555, y, 14);
             zvel[pSprite2->index] = zvel[nSprite];
+#else
+            SPRITE *pSprite2 = func_36878(pPlayer->pSprite, 212, pPlayer->pSprite->clipdist<<1);
+            int nSprite = pPlayer->pSprite->index;
+            xvel[pSprite2->index] = xvel[nSprite] << 1;
+            yvel[pSprite2->index] = yvel[nSprite] << 1;
+            zvel[pSprite2->index] = zvel[nSprite] << 1;
+#endif
             pPlayer->at376 = 0;
         }
         pInput->keyFlags.action = 0;
@@ -1624,7 +1647,7 @@ void playerProcess(PLAYER *pPlayer)
                 nSector = pSprite->sectnum;
                 actDamageSprite(pSprite->index, pSprite, DAMAGE_TYPE_0, 500<<4);
             }
-            dassert(nSector >= 0 && nSector < kMaxSectors, 2481);
+            dassert(nSector >= 0 && nSector < kMaxSectors, 2481+LDIFF1);
             ChangeSpriteSect(nSprite, nSector);
         }
     }
@@ -1740,20 +1763,20 @@ SPRITE *playerFireMissile(PLAYER *pPlayer, int a2, long a3, long a4, long a5, in
 
 SPRITE * playerFireThing(PLAYER *pPlayer, int a2, int a3, int thingType, int a5)
 {
-    dassert(thingType >= kThingBase && thingType < kThingMax, 2636);
+    dassert(thingType >= kThingBase && thingType < kThingMax, 2636+LDIFF1);
     return actFireThing(pPlayer->pSprite, a2, pPlayer->at6f-pPlayer->pSprite->z, pPlayer->at83+a3, thingType, a5);
 }
 
 void playerFrag(PLAYER *pKiller, PLAYER *pVictim)
 {
-    dassert(pKiller != NULL, 2647);
-    dassert(pVictim != NULL, 2648);
+    dassert(pKiller != NULL, 2647+LDIFF1);
+    dassert(pVictim != NULL, 2648+LDIFF1);
     
     char buffer[128] = "";
     int nKiller = pKiller->pSprite->type-kDudePlayer1;
-    dassert(nKiller >= 0 && nKiller < kMaxPlayers, 2653);
+    dassert(nKiller >= 0 && nKiller < kMaxPlayers, 2653+LDIFF1);
     int nVictim = pVictim->pSprite->type-kDudePlayer1;
-    dassert(nVictim >= 0 && nVictim < kMaxPlayers, 2655);
+    dassert(nVictim >= 0 && nVictim < kMaxPlayers, 2655+LDIFF1);
     if (myconnectindex == connecthead)
     {
         sprintf(buffer, "frag %d killed %d\n", pKiller->at57+1, pVictim->at57+1);
@@ -1872,9 +1895,9 @@ SPRITE *func_40A94(PLAYER *pPlayer, int a2)
 
 int playerDamageSprite(int nSource, PLAYER *pPlayer, DAMAGE_TYPE nDamageType, int nDamage)
 {
-    dassert(nSource < kMaxSprites, 2820);
-    dassert(pPlayer != NULL, 2821);
-    dassert(nDamageType >= 0 && nDamageType < kDamageMax, 2822);
+    dassert(nSource < kMaxSprites, 2820+LDIFF1);
+    dassert(pPlayer != NULL, 2821+LDIFF1);
+    dassert(nDamageType >= 0 && nDamageType < kDamageMax, 2822+LDIFF1);
     if (pPlayer->ata1[nDamageType])
         return 0;
     nDamage = playerDamageArmor(pPlayer, nDamageType, nDamage);
@@ -2012,7 +2035,7 @@ int playerDamageSprite(int nSource, PLAYER *pPlayer, DAMAGE_TYPE nDamageType, in
         FragPlayer(pPlayer, nSource);
         trTriggerSprite(nSprite, pXSprite, 0);
     }
-    dassert(gSysRes.Lookup(pDudeInfo->seqStartID + nDeathSeqID, "SEQ") != NULL, 3030);
+    dassert(gSysRes.Lookup(pDudeInfo->seqStartID + nDeathSeqID, "SEQ") != NULL, 3030+LDIFF1);
     seqSpawn(pDudeInfo->seqStartID+nDeathSeqID, 3, nXSprite, v18);
     return nDamage;
 }

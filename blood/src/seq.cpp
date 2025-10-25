@@ -31,6 +31,14 @@
 #include "sfx.h"
 #include "tile.h"
 
+#if APPVER_BLOODREV >= AV_BR_BL120
+#define LDIFF1 0
+#define LDIFF2 0
+#else
+#define LDIFF1 -1
+#define LDIFF2 -20
+#endif
+
 SEQINST siWall[kMaxXWalls];
 SEQINST siMasked[kMaxXWalls];
 SEQINST siCeiling[kMaxXSectors];
@@ -47,7 +55,7 @@ static int nClients = 0;
 
 int seqRegisterClient(void(*pClient)(int, int))
 {
-    dassert(nClients < kMaxClients, 44);
+    dassert(nClients < kMaxClients, 44+LDIFF1);
     int id = nClients++;
     clientCallback[id] = pClient;
     return id;
@@ -56,9 +64,9 @@ int seqRegisterClient(void(*pClient)(int, int))
 void Seq::Preload(void)
 {
     if (memcmp(signature, "SEQ\x1a", 4) != 0)
-        ThrowError(53)("Invalid sequence");
+        ThrowError(53+LDIFF1)("Invalid sequence");
     if ((version&0xff00) != 0x300)
-        ThrowError(56)("Obsolete sequence version");
+        ThrowError(56+LDIFF1)("Obsolete sequence version");
     for (int i = 0; i < nFrames; i++)
         tilePreloadTile(frames[i].tile);
 }
@@ -66,9 +74,9 @@ void Seq::Preload(void)
 void Seq::Precache(void)
 {
     if (memcmp(signature, "SEQ\x1a", 4) != 0)
-        ThrowError(66)("Invalid sequence");
+        ThrowError(66+LDIFF1)("Invalid sequence");
     if ((version&0xff00) != 0x300)
-        ThrowError(69)("Obsolete sequence version");
+        ThrowError(69+LDIFF1)("Obsolete sequence version");
     for (int i = 0; i < nFrames; i++)
         tilePrecacheTile(frames[i].tile);
 }
@@ -85,11 +93,11 @@ void seqCache(int id)
 
 static void UpdateSprite(int nXSprite, SEQFRAME *pFrame)
 {
-    dassert(nXSprite > 0 && nXSprite < kMaxXSprites, 114);
+    dassert(nXSprite > 0 && nXSprite < kMaxXSprites, 114+LDIFF1);
     int nSprite = xsprite[nXSprite].reference;
-    dassert(nSprite >= 0 && nSprite < kMaxSprites, 116);
+    dassert(nSprite >= 0 && nSprite < kMaxSprites, 116+LDIFF1);
     SPRITE *pSprite = &sprite[nSprite];
-    dassert(pSprite->extra == nXSprite, 118);
+    dassert(pSprite->extra == nXSprite, 118+LDIFF1);
     if (pSprite->flags & kSpriteFlag1)
     {
         if (tilesizy[pSprite->picnum] != tilesizy[pFrame->tile] || picanm[pSprite->picnum].yoffset != picanm[pFrame->tile].yoffset
@@ -148,11 +156,11 @@ static void UpdateSprite(int nXSprite, SEQFRAME *pFrame)
 
 static void UpdateWall(int nXWall, SEQFRAME *pFrame)
 {
-    dassert(nXWall > 0 && nXWall < kMaxXWalls, 194);
+    dassert(nXWall > 0 && nXWall < kMaxXWalls, 194+LDIFF1);
     int nWall = xwall[nXWall].reference;
-    dassert(nWall >= 0 && nWall < kMaxWalls, 196);
+    dassert(nWall >= 0 && nWall < kMaxWalls, 196+LDIFF1);
     WALL *pWall = &wall[nWall];
-    dassert(pWall->extra == nXWall, 198);
+    dassert(pWall->extra == nXWall, 198+LDIFF1);
     pWall->picnum = pFrame->tile;
     if (pFrame->at5_0)
         pWall->pal = pFrame->at5_0;
@@ -176,12 +184,12 @@ static void UpdateWall(int nXWall, SEQFRAME *pFrame)
 
 static void UpdateMasked(int nXWall, SEQFRAME *pFrame)
 {
-    dassert(nXWall > 0 && nXWall < kMaxXWalls, 229);
+    dassert(nXWall > 0 && nXWall < kMaxXWalls, 229+LDIFF1);
     int nWall = xwall[nXWall].reference;
-    dassert(nWall >= 0 && nWall < kMaxWalls, 231);
+    dassert(nWall >= 0 && nWall < kMaxWalls, 231+LDIFF1);
     WALL *pWall = &wall[nWall];
-    dassert(pWall->extra == nXWall, 233);
-    dassert(pWall->nextwall >= 0, 234);
+    dassert(pWall->extra == nXWall, 233+LDIFF1);
+    dassert(pWall->nextwall >= 0, 234+LDIFF1);
     WALL *pWallNext = &wall[pWall->nextwall];
     pWall->overpicnum = pWallNext->overpicnum = pFrame->tile;
     if (pFrame->at5_0)
@@ -230,11 +238,11 @@ static void UpdateMasked(int nXWall, SEQFRAME *pFrame)
 
 static void UpdateFloor(int nXSector, SEQFRAME *pFrame)
 {
-    dassert(nXSector > 0 && nXSector < kMaxXSectors, 290);
+    dassert(nXSector > 0 && nXSector < kMaxXSectors, 290+LDIFF1);
     int nSector = xsector[nXSector].reference;
-    dassert(nSector >= 0 && nSector < kMaxSectors, 292);
+    dassert(nSector >= 0 && nSector < kMaxSectors, 292+LDIFF1);
     SECTOR *pSector = &sector[nSector];
-    dassert(pSector->extra == nXSector, 294);
+    dassert(pSector->extra == nXSector, 294+LDIFF1);
     pSector->floorpicnum = pFrame->tile;
     pSector->floorshade = pFrame->at4_0;
     if (pFrame->at5_0)
@@ -243,11 +251,11 @@ static void UpdateFloor(int nXSector, SEQFRAME *pFrame)
 
 static void UpdateCeiling(int nXSector, SEQFRAME *pFrame)
 {
-    dassert(nXSector > 0 && nXSector < kMaxXSectors, 305);
+    dassert(nXSector > 0 && nXSector < kMaxXSectors, 305+LDIFF1);
     int nSector = xsector[nXSector].reference;
-    dassert(nSector >= 0 && nSector < kMaxSectors, 307);
+    dassert(nSector >= 0 && nSector < kMaxSectors, 307+LDIFF1);
     SECTOR *pSector = &sector[nSector];
-    dassert(pSector->extra == nXSector, 309);
+    dassert(pSector->extra == nXSector, 309+LDIFF1);
     pSector->ceilingpicnum = pFrame->tile;
     pSector->ceilingshade = pFrame->at4_0;
     if (pFrame->at5_0)
@@ -256,7 +264,7 @@ static void UpdateCeiling(int nXSector, SEQFRAME *pFrame)
 
 void SEQINST::Update(ACTIVE *pActive)
 {
-    dassert(frameIndex < pSequence->nFrames, 320);
+    dassert(frameIndex < pSequence->nFrames, 320+LDIFF1);
     switch (pActive->type)
     {
     case 0:
@@ -309,9 +317,9 @@ SEQINST * GetInstance(int a1, int a2)
 
 void UnlockInstance(SEQINST *pInst)
 {
-    dassert(pInst != NULL, 411);
-    dassert(pInst->hSeq != NULL, 412);
-    dassert(pInst->pSequence != NULL, 413);
+    dassert(pInst != NULL, 411+LDIFF1);
+    dassert(pInst->hSeq != NULL, 412+LDIFF1);
+    dassert(pInst->pSequence != NULL, 413+LDIFF1);
     gSysRes.Unlock(pInst->hSeq);
     pInst->hSeq = NULL;
     pInst->pSequence = NULL;
@@ -325,7 +333,7 @@ void seqSpawn(int a1, int a2, int a3, int a4)
         return;
     DICTNODE *hSeq = gSysRes.Lookup(a1, "SEQ");
     if (!hSeq)
-        ThrowError(435)("Missing sequence #%d", a1);
+        ThrowError(435+LDIFF1)("Missing sequence #%d", a1);
     int i = activeCount;
     if (pInst->at13)
     {
@@ -337,13 +345,13 @@ void seqSpawn(int a1, int a2, int a3, int a4)
             if (activeList[i].type == a2 && activeList[i].xindex == a3)
                 break;
         }
-        dassert(i < activeCount, 452);
+        dassert(i < activeCount, 452+LDIFF1);
     }
     Seq *pSeq = (Seq*)gSysRes.Lock(hSeq);
     if (memcmp(pSeq->signature, "SEQ\x1a", 4) != 0)
-        ThrowError(458)("Invalid sequence %d", a1);
+        ThrowError(458+LDIFF1)("Invalid sequence %d", a1);
     if ((pSeq->version & 0xff00) != 0x300)
-        ThrowError(461)("Sequence %d is obsolete version", a1);
+        ThrowError(461+LDIFF1)("Sequence %d is obsolete version", a1);
     pInst->hSeq = hSeq;
     pInst->pSequence = pSeq;
     pInst->at8 = a1;
@@ -353,7 +361,7 @@ void seqSpawn(int a1, int a2, int a3, int a4)
     pInst->frameIndex = 0;
     if (i == activeCount)
     {
-        dassert(activeCount < kMaxSequences, 473);
+        dassert(activeCount < kMaxSequences, 473+LDIFF1);
         activeList[activeCount].type = a2;
         activeList[activeCount].xindex = a3;
         activeCount++;
@@ -372,7 +380,7 @@ void seqKill(int a1, int a2)
         if (activeList[i].type == a1 && activeList[i].xindex == a2)
             break;
     }
-    dassert(i < activeCount, 499);
+    dassert(i < activeCount, 499+LDIFF1);
     activeCount--;
     activeList[i] = activeList[activeCount];
     pInst->at13 = 0;
@@ -425,7 +433,7 @@ void seqProcess(int a1)
     {
         SEQINST *pInst = GetInstance(activeList[i].type, activeList[i].xindex);
         Seq *pSeq = pInst->pSequence;
-        dassert(pInst->frameIndex < pSeq->nFrames, 594);
+        dassert(pInst->frameIndex < pSeq->nFrames, 594+LDIFF1);
         pInst->at10 -= a1;
         while (pInst->at10 < 0)
         {
@@ -445,18 +453,20 @@ void seqProcess(int a1)
                         case 3:
                         {
                             int nSprite = xsprite[activeList[i].xindex].reference;
-                            dassert(nSprite >= 0 && nSprite < kMaxSprites, 618);
+                            dassert(nSprite >= 0 && nSprite < kMaxSprites, 618+LDIFF1);
                             evKill(nSprite, 3);
+#if APPVER_BLOODREV >= AV_BR_BL120
                             if ((sprite[nSprite].flags & kSpriteFlag4) && sprite[nSprite].inittype >= 200 && sprite[nSprite].inittype < 254)
                                 evPost(nSprite, 3, gGameOptions.nMonsterRespawnTime, CALLBACK_ID_9);
                             else
+#endif
                                 DeleteSprite(nSprite);
                             break;
                         }
                         case 4:
                         {
                             int nWall = xwall[activeList[i].xindex].reference;
-                            dassert(nWall >= 0 && nWall < kMaxWalls, 649);
+                            dassert(nWall >= 0 && nWall < kMaxWalls, 649+LDIFF2);
                             wall[nWall].cstat &= ~(8+16+32);
                             //int nNextWall = wall[nWall].nextwall;
                             if (wall[nWall].nextwall != -1)
@@ -518,12 +528,12 @@ void SeqLoadSave::Load(void)
             int nSeq = pInst->at8;
             DICTNODE *hSeq = gSysRes.Lookup(nSeq, "SEQ");
             if (!hSeq)
-                ThrowError(735)("Missing sequence #%d", nSeq);
+                ThrowError(735+LDIFF2)("Missing sequence #%d", nSeq);
             Seq *pSeq = (Seq*)gSysRes.Lock(hSeq);
             if (memcmp(pSeq->signature, "SEQ\x1a", 4) != 0)
-                ThrowError(740)("Invalid sequence %d", nSeq);
+                ThrowError(740+LDIFF2)("Invalid sequence %d", nSeq);
             if ((pSeq->version & 0xff00) != 0x300)
-                ThrowError(743)("Sequence %d is obsolete version", nSeq);
+                ThrowError(743+LDIFF2)("Sequence %d is obsolete version", nSeq);
             pInst->hSeq = hSeq;
             pInst->pSequence = pSeq;
         }
