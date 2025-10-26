@@ -157,6 +157,12 @@ void CKillMgr::Draw(void)
     char buffer[40];
     if (gGameOptions.nGameType == GAMETYPE_0)
     {
+#if APPVER_BLOODREV < AV_BR_BL111A
+        if (CCheatMgr::m_bPlayerCheated)
+        {
+            at4 = at0 = 0;
+        }
+#endif
         viewDrawText(1, "KILLS:", 75, 50, -128, 0, 0, 1);
         sprintf(buffer, "%2d", at4);
         viewDrawText(1, buffer, 160, 50, -128, 0, 0, 1);
@@ -228,6 +234,12 @@ void CSecretMgr::Found(int nType)
 void CSecretMgr::Draw(void)
 {
     char buffer[40];
+#if APPVER_BLOODREV < AV_BR_BL111A
+    if (CCheatMgr::m_bPlayerCheated)
+    {
+        at4 = at0 = at8 = 0;
+    }
+#endif
     viewDrawText(1, "SECRETS:", 75, 70, -128, 0, 0, 1);
     sprintf(buffer, "%2d", at4);
     viewDrawText(1, buffer, 160, 70, -128, 0, 0, 1);

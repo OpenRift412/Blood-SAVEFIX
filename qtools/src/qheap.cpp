@@ -19,9 +19,18 @@
 #include <stdio.h>
 #include <ctype.h>
 #include "typedefs.h"
+#include "..\gamever.h"
 #include "debug4g.h"
 #include "error.h"
 #include "qheap.h"
+
+#if APPVER_QTOOLSREV >= AV_QR_QT111A
+#define LDIFF1 0
+#define LDIFF2 0
+#else
+#define LDIFF1 -2
+#define LDIFF2 -36
+#endif
 
 void InstallFenceposts(HEAPNODE *n)
 {
@@ -37,7 +46,7 @@ void CheckFenceposts(HEAPNODE *n)
     {
         if (*data != 0xcc)
         {
-            ThrowError(51)("Block underwritten");
+            ThrowError(51+LDIFF1)("Block underwritten");
         }
     }
     data = (byte*)n + n->size - 0x10;
@@ -45,14 +54,14 @@ void CheckFenceposts(HEAPNODE *n)
     {
         if (*data != 0xcc)
         {
-            ThrowError(58)("Block overwritten");
+            ThrowError(58+LDIFF1)("Block overwritten");
         }
     }
 }
 
 QHeap::QHeap(int heapSize)
 {
-    dassert(heapSize > 0, 67);
+    dassert(heapSize > 0, 67+LDIFF1);
     size = heapSize;
     void *p = malloc(0x20000);
     while (size > 0 && (heapPtr = malloc(size)) == NULL)
@@ -62,7 +71,7 @@ QHeap::QHeap(int heapSize)
     free(p);
     if (!heapPtr)
     {
-        ThrowError(91)("Allocation failure\n");
+        ThrowError(91+LDIFF1)("Allocation failure\n");
     }
     heap.isFree = FALSE;
     freeHeap.isFree = FALSE;
@@ -95,6 +104,7 @@ void QHeap::Check(void)
     }
 }
 
+#if APPVER_QTOOLSREV >= AV_QR_QT111A
 void QHeap::Debug(void)
 {
     char s[4];
@@ -140,18 +150,19 @@ void QHeap::Debug(void)
     }
     fclose(f);
 }
+#endif
 
 void *QHeap::Alloc(int blockSize)
 {
-    dassert(blockSize > 0, 184);
-    dassert(heapPtr != NULL, 185);
+    dassert(blockSize > 0, 184+LDIFF2);
+    dassert(heapPtr != NULL, 185+LDIFF2);
     if (blockSize > 0)
     {
         blockSize = ((blockSize + 0xf) & ~0xf) + 0x30;
         HEAPNODE *freeNode = freeHeap.freeNext;
         while (freeNode != &freeHeap)
         {
-            dassert(freeNode->isFree, 199);
+            dassert(freeNode->isFree, 199+LDIFF2);
             if (blockSize <= freeNode->size)
             {
                 if (blockSize + 0x20 <= freeNode->size)
@@ -190,11 +201,11 @@ int QHeap::Free(void *p)
     {
         return 0;
     }
-    dassert(heapPtr != NULL, 261);
+    dassert(heapPtr != NULL, 261+LDIFF2);
     HEAPNODE *node = (HEAPNODE*)((byte*)p - 0x20);
     if (node->isFree)
     {
-        ThrowError(271)("Free on bad or freed block");
+        ThrowError(271+LDIFF2)("Free on bad or freed block");
     }
     CheckFenceposts(node);
     if (node->prev->isFree)

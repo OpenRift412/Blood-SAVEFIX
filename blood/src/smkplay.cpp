@@ -52,6 +52,10 @@ int CSMKPlayer::PlaySMKWithWAV(char *a1, int a2)
     u32 i;
     Smack *smk;
     func_2906C();
+#if APPVER_BLOODREV < AV_BR_BL111A
+    sndStopSong();
+    sndKillAllSounds();
+#endif
     v4 = 0;
 
     smk = SmackOpen(a1, 0xfe100, -1);
@@ -101,6 +105,10 @@ int CSMKPlayer::PlaySMKWithWAV(char *a1, char *a2)
     u32 i;
     Smack *smk;
     func_2906C();
+#if APPVER_BLOODREV < AV_BR_BL111A
+    sndStopSong();
+    sndKillAllSounds();
+#endif
     v4 = 0;
 
     smk = SmackOpen(a1, 0xfe100, -1);
@@ -150,7 +158,11 @@ RCFUNC void PTR4* RADLINK radmalloc(u32 numbytes)
     byte va;
     if (numbytes == 0 || numbytes == -1)
         return 0;
+#if APPVER_BLOODREV >= AV_BR_BL111A
     temp = (byte*)Resource::Alloc(numbytes + 16);
+#else
+    temp = (byte*)Resource::heap->Alloc(numbytes + 16);
+#endif
     if (!temp)
         return 0;
 
@@ -169,5 +181,9 @@ RCFUNC void RADLINK radfree(void PTR4* ptr)
         return;
     va = temp[-1];
     temp -= va;
+#if APPVER_BLOODREV >= AV_BR_BL111A
     Resource::Free(temp);
+#else
+    Resource::heap->Free(temp);
+#endif
 }

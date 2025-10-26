@@ -64,7 +64,7 @@
 #define LDIFF8 0
 #define LDIFF9 0
 #define LDIFF10 0
-#else
+#elif APPVER_BLOODREV >= AV_BR_BL111A
 #define LDIFF1 -2
 #define LDIFF2 -6
 #define LDIFF3 -9
@@ -75,6 +75,17 @@
 #define LDIFF8 -57
 #define LDIFF9 -64
 #define LDIFF10 -93
+#else
+#define LDIFF1 -2
+#define LDIFF2 -6
+#define LDIFF3 -9
+#define LDIFF4 -32
+#define LDIFF5 -35
+#define LDIFF6 -50
+#define LDIFF7 -54
+#define LDIFF8 -64
+#define LDIFF9 -71
+#define LDIFF10 -100
 #endif
 
 #if APPVER_BLOODREV >= AV_BR_BL120
@@ -2790,6 +2801,7 @@ void actKillDude(int a1, SPRITE *pSprite, DAMAGE_TYPE a3, int a4)
         return;
     case 201:
     case 202:
+#ifdef PLASMAPAK111
     case 247:
     case 248:
         if (a3 == DAMAGE_TYPE_1 && pXSprite->at17_6 == 0)
@@ -2800,6 +2812,17 @@ void actKillDude(int a1, SPRITE *pSprite, DAMAGE_TYPE a3, int a4)
             return;
         }
         // no break
+#if APPVER_BLOODREV < AV_BR_BL111A
+    case 250:
+        if (a3 == DAMAGE_TYPE_1 && pXSprite->at17_6 == 0)
+        {
+            pSprite->type = 252;
+            aiNewState(pSprite, pXSprite, &tinycalebBurnGoto);
+            actHealDude(pXSprite, dudeInfo[52].at2, dudeInfo[52].at2);
+            return;
+        }
+        // no break
+#endif
     case 251:
         if (a3 == DAMAGE_TYPE_1 && pXSprite->at17_6 == 0)
         {
@@ -2809,6 +2832,7 @@ void actKillDude(int a1, SPRITE *pSprite, DAMAGE_TYPE a3, int a4)
             return;
         }
         // no break
+#endif
     case 245:
         if (a3 == DAMAGE_TYPE_1 && pXSprite->at17_6 == 0)
         {
@@ -2831,8 +2855,10 @@ void actKillDude(int a1, SPRITE *pSprite, DAMAGE_TYPE a3, int a4)
     {
         int nPlayer = pSprite2->type - kDudePlayer1;
         PLAYER *pPlayer = &gPlayer[nPlayer];
+#if APPVER_BLOODREV >= AV_BR_BL111A
         if (gGameOptions.nGameType == GAMETYPE_1)
             pPlayer->at2c6++;
+#endif
     }
 
     if (pXSprite->atd_3 > 0)
@@ -2957,8 +2983,10 @@ void actKillDude(int a1, SPRITE *pSprite, DAMAGE_TYPE a3, int a4)
         break;
     case 201:
     case 202:
+#ifdef PLASMAPAK111
     case 247:
     case 248:
+#endif
         sfxPlay3DSound(pSprite, 1018+Random(2));
         seqSpawn(dudeInfo[nType].seqStartID+nSeq, 3, nXSprite, nSeq == 3 ? nDudeToGibClient2 : nDudeToGibClient1);
         break;
@@ -3195,6 +3223,7 @@ void actKillDude(int a1, SPRITE *pSprite, DAMAGE_TYPE a3, int a4)
         sfxPlay3DSound(pSprite, 2380);
         seqSpawn(dudeInfo[nType].seqStartID+nSeq, 3, nXSprite);
         break;
+#ifdef PLASMAPAK111
     case 252:
         a3 = DAMAGE_TYPE_3;
         seqSpawn(dudeInfo[nType].seqStartID+11, 3, nXSprite, nDudeToGibClient1);
@@ -3207,6 +3236,7 @@ void actKillDude(int a1, SPRITE *pSprite, DAMAGE_TYPE a3, int a4)
         a3 = DAMAGE_TYPE_3;
         seqSpawn(dudeInfo[nType].seqStartID+12, 3, nXSprite, nDudeToGibClient1);
         break;
+#endif
     default:
         seqSpawn(dudeInfo[nType].seqStartID+nSeq, 3, nXSprite);
         break;

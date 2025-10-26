@@ -21,12 +21,19 @@
 #include <io.h>
 #include <fcntl.h>
 #include "typedefs.h"
+#include "..\gamever.h"
 #include "crc32.h"
 #include "debug4g.h"
 #include "error.h"
 #include "misc.h"
 #include "qheap.h"
 #include "resource.h"
+
+#if APPVER_QTOOLSREV >= AV_QR_QT111A
+#define LDIFF1 0
+#else
+#define LDIFF1 -4
+#endif
 
 CACHENODE Resource::purgeHead = { NULL, &purgeHead, &purgeHead, 0 };
 QHeap *Resource::heap;
@@ -345,40 +352,40 @@ static void *Resource::Alloc(long nSize)
             return p;
         }
     }
-    ThrowError(416)("Out of memory!");
+    ThrowError(416+LDIFF1)("Out of memory!");
     return NULL;
 }
 
 static void Resource::Free(void *p)
 {
-    dassert(heap != NULL, 423);
-    dassert(p != NULL, 424);
+    dassert(heap != NULL, 423+LDIFF1);
+    dassert(p != NULL, 424+LDIFF1);
     heap->Free(p);
 }
 
 DICTNODE *Resource::Lookup(char *name, char *type)
 {
-    dassert(name != NULL, 432);
-    dassert(type != NULL, 433);
+    dassert(name != NULL, 432+LDIFF1);
+    dassert(type != NULL, 433+LDIFF1);
     return *Probe(strupr(name), strupr(type));
 }
 
 DICTNODE *Resource::Lookup(unsigned long id, char *type)
 {
-    dassert(type != NULL, 441);
+    dassert(type != NULL, 441+LDIFF1);
     return *Probe(id, strupr(type));
 }
 
 void Resource::Read(DICTNODE *n)
 {
-    dassert(n != NULL, 449);
+    dassert(n != NULL, 449+LDIFF1);
     Read(n, n->ptr);
 }
 
 void Resource::Read(DICTNODE *n, void *p)
 {
     char buf[144];
-    dassert(n != NULL, 456);
+    dassert(n != NULL, 456+LDIFF1);
     if (!p)
         return;
     if (n->flags & kResourceFlag2)
@@ -386,7 +393,7 @@ void Resource::Read(DICTNODE *n, void *p)
         sprintf(buf, "%s%.8s.%.3s", ext, n->name, n->type);
         if (!FileLoad(buf, p, n->size))
         {
-            ThrowError(472)("Error reading external resource (%i)", *__get_errno_ptr());
+            ThrowError(472+LDIFF1)("Error reading external resource (%i)", *__get_errno_ptr());
         }
     }
     else
@@ -394,11 +401,11 @@ void Resource::Read(DICTNODE *n, void *p)
         int r = lseek(handle, n->offset, SEEK_SET);
         if (r == -1)
         {
-            ThrowError(479)("Error seeking to resource!");
+            ThrowError(479+LDIFF1)("Error seeking to resource!");
         }
         if (!FileRead(handle, p, n->size))
         {
-            ThrowError(482)("Error loading resource!");
+            ThrowError(482+LDIFF1)("Error loading resource!");
         }
         if (n->flags & kResourceFlag5)
         {
@@ -409,7 +416,7 @@ void Resource::Read(DICTNODE *n, void *p)
 
 void *Resource::Load(DICTNODE *h)
 {
-    dassert(h != NULL, 506);
+    dassert(h != NULL, 506+LDIFF1);
     if (h->ptr)
     {
         if (!h->lockCount)
@@ -427,7 +434,7 @@ void *Resource::Load(DICTNODE *h)
 
 void *Resource::Load(DICTNODE *h, void *p)
 {
-    dassert(h != NULL, 530);
+    dassert(h != NULL, 530+LDIFF1);
     if (p)
     {
         Read(h, p);
@@ -437,7 +444,7 @@ void *Resource::Load(DICTNODE *h, void *p)
 
 void *Resource::Lock(DICTNODE *h)
 {
-    dassert(h != NULL, 545);
+    dassert(h != NULL, 545+LDIFF1);
     if (h->ptr)
     {
         if (h->lockCount == 0)
@@ -457,8 +464,8 @@ void *Resource::Lock(DICTNODE *h)
 
 void Resource::Unlock(DICTNODE *h)
 {
-    dassert(h != NULL, 566);
-    dassert(h->ptr != NULL, 567);
+    dassert(h != NULL, 566+LDIFF1);
+    dassert(h->ptr != NULL, 567+LDIFF1);
     if (h->lockCount > 0)
     {
         h->lockCount--;

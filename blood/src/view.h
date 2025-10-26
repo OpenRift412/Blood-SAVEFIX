@@ -37,10 +37,17 @@ extern FONT gFont[];
 
 extern int gViewMode;
 extern int gZoom;
+#if APPVER_BLOODREV >= AV_BR_BL111A
 extern int gViewX0S;
 extern int gViewX1S;
 extern int gViewY0S;
 extern int gViewY1S;
+#else
+extern int gViewX0;
+extern int gViewX1;
+extern int gViewY0;
+extern int gViewY1;
+#endif
 extern int gViewIndex;
 
 extern int gShowFrameRate;
@@ -125,7 +132,9 @@ void viewDrawText(int, char *, int, int, int, int, int position = 0, BOOL shadow
 void viewGetFontInfo(int nFont, char *pString, int *pXSize, int *pYSize);
 #endif
 void viewDrawChar(QFONT *pFont, char chr, int x, int y, byte *pLookup);
+#if APPVER_BLOODREV >= AV_BR_BL111A
 void viewUpdatePages(void);
+#endif
 void viewDrawSprite(long,long,long,int,int,schar,byte,ushort,long,long,long,long);
 void viewInit(void);
 void viewBackupView(int);

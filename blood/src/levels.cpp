@@ -38,6 +38,12 @@
 #include "view.h"
 #include "weather.h"
 
+#if APPVER_BLOODREV >= AV_BR_BL111A
+#define LDIFF1 0
+#else
+#define LDIFF1 -12
+#endif
+
 short short_133FB4 = -1;
 char BloodINIFile[128] = "BLOOD.INI";
 
@@ -92,11 +98,15 @@ void func_269D8(char *pzIni)
 void levelPlayIntroScene(int nEpisode)
 {
     gGameOptions.uGameFlags &= ~4;
+#if APPVER_BLOODREV >= AV_BR_BL111A
     sndStopSong();
+#endif
     sndKillAllSounds();
     sfxKillAllSounds();
     ambKillAll();
+#if APPVER_BLOODREV >= AV_BR_BL111A
     seqKillAll();
+#endif
     EPISODEINFO *pEpisode = &gEpisodeInfo[nEpisode];
     char* s = pEpisode->at8f08;
     int i = pEpisode->at9028;
@@ -115,11 +125,15 @@ void levelPlayIntroScene(int nEpisode)
 void levelPlayEndScene(int nEpisode)
 {
     gGameOptions.uGameFlags &= ~8;
+#if APPVER_BLOODREV >= AV_BR_BL111A
     sndStopSong();
+#endif
     sndKillAllSounds();
     sfxKillAllSounds();
     ambKillAll();
+#if APPVER_BLOODREV >= AV_BR_BL111A
     seqKillAll();
+#endif
     EPISODEINFO *pEpisode = &gEpisodeInfo[nEpisode];
     char* s = pEpisode->at8f98;
     int i = pEpisode->at902c;
@@ -153,30 +167,30 @@ void levelTriggerSecret(int nSecret)
 void CheckSectionAbend(char *pzSection)
 {
     if (!pzSection || !BloodINI->SectionExists(pzSection))
-        ThrowError(346)("Section [%s] expected in BLOOD.INI", pzSection);
+        ThrowError(346+LDIFF1)("Section [%s] expected in BLOOD.INI", pzSection);
 }
 
 void CheckKeyAbend(char *pzSection, char *pzKey)
 {
-    dassert(pzSection != NULL, 352);
+    dassert(pzSection != NULL, 352+LDIFF1);
 
     if (!pzKey || !BloodINI->KeyExists(pzSection, pzKey))
-        ThrowError(355)("Key %s expected in section [%s] of BLOOD.INI", pzSection, pzKey);
+        ThrowError(355+LDIFF1)("Key %s expected in section [%s] of BLOOD.INI", pzSection, pzKey);
 }
 
 LEVELINFO * levelGetInfoPtr(int nEpisode, int nLevel)
 {
-    dassert(nEpisode >= 0 && nEpisode < gEpisodeCount, 361);
+    dassert(nEpisode >= 0 && nEpisode < gEpisodeCount, 361+LDIFF1);
     EPISODEINFO *pEpisodeInfo = &gEpisodeInfo[nEpisode];
-    dassert(nLevel >= 0 && nLevel < pEpisodeInfo->nLevels, 365);
+    dassert(nLevel >= 0 && nLevel < pEpisodeInfo->nLevels, 365+LDIFF1);
     return &pEpisodeInfo->at28[nLevel];
 }
 
 char * levelGetFilename(int nEpisode, int nLevel)
 {
-    dassert(nEpisode >= 0 && nEpisode < gEpisodeCount, 373);
+    dassert(nEpisode >= 0 && nEpisode < gEpisodeCount, 373+LDIFF1);
     EPISODEINFO *pEpisodeInfo = &gEpisodeInfo[nEpisode];
-    dassert(nLevel >= 0 && nLevel < pEpisodeInfo->nLevels, 377);
+    dassert(nLevel >= 0 && nLevel < pEpisodeInfo->nLevels, 377+LDIFF1);
     return pEpisodeInfo->at28[nLevel].at0;
 }
 
@@ -184,7 +198,7 @@ char * levelGetMessage(int nMessage)
 {
     int nEpisode = gGameOptions.nEpisode;
     int nLevel = gGameOptions.nLevel;
-    dassert(nMessage < kMaxMessages, 388);
+    dassert(nMessage < kMaxMessages, 388+LDIFF1);
     LEVELINFO *pLevelInfo = &gEpisodeInfo[nEpisode].at28[nLevel];
     if (!pLevelInfo->atec[nMessage][0])
         return NULL;
@@ -324,7 +338,7 @@ void levelAddUserMap(char *pzMap)
 
 void levelGetNextLevels(int nEpisode, int nLevel, int *pnEndingA, int *pnEndingB)
 {
-    dassert(pnEndingA != NULL && pnEndingB != NULL, 649);
+    dassert(pnEndingA != NULL && pnEndingB != NULL, 649+LDIFF1);
     LEVELINFO *pLevelInfo = &gEpisodeInfo[nEpisode].at28[nLevel];
     int nEndingA = pLevelInfo->ate4;
     if (nEndingA >= 0)

@@ -52,13 +52,14 @@
 
 #if APPVER_BLOODREV >= AV_BR_BL120
 #define LDIFF1 0
+#define LDIFF8 0
 #define LDIFF2 0
 #define LDIFF3 0
 #define LDIFF4 0
 #define LDIFF5 0
 #define LDIFF6 0
 #define LDIFF7 0
-#else
+#elif APPVER_BLOODREV >= AV_BR_BL111A
 #define LDIFF1 -101
 #define LDIFF2 -127
 #define LDIFF3 -149
@@ -66,6 +67,14 @@
 #define LDIFF5 -158
 #define LDIFF6 -163
 #define LDIFF7 -172
+#else
+#define LDIFF1 -106
+#define LDIFF2 -132
+#define LDIFF3 -162
+#define LDIFF4 -180
+#define LDIFF5 -185
+#define LDIFF6 -190
+#define LDIFF7 -199
 #endif
 
 int gViewMode = 3;
@@ -84,7 +93,9 @@ int gViewIndex;
 VIEWPOS gViewPos;
 
 int gViewX0, gViewY0, gViewX1, gViewY1;
+#if APPVER_BLOODREV >= AV_BR_BL111A
 int gViewX0S, gViewY0S, gViewX1S, gViewY1S;
+#endif
 int xscale, xstep, yscale, ystep;
 int gViewXCenter, gViewYCenter;
 
@@ -255,10 +266,12 @@ void viewGetFontInfo(int nFont, char* pString, int* pXSize, int* pYSize)
 }
 #endif
 
+#if APPVER_BLOODREV >= AV_BR_BL111A
 void viewUpdatePages(void)
 {
     pcBackground = numpages;
 }
+#endif
 
 void viewToggle(int viewMode)
 {
@@ -1102,9 +1115,9 @@ void viewDrawText(int nFont, char * string, int x, int y, int nShade, int nPalet
 #else
     char *s;
 
-    dassert(string != NULL, 1369);
+    dassert(string != NULL, 1369+LDIFF1+101);
     DICTNODE *hFont = gSysRes.Lookup(nFont, "QFN");
-    dassert(hFont != NULL, 1372);
+    dassert(hFont != NULL, 1372+LDIFF1+101);
 
     QFONT *pFont = (QFONT*)gSysRes.Lock(hFont);
     byte* pPalookup = palookup[nPalette] + (getpalookup(0, nShade) << 8);
@@ -1250,7 +1263,9 @@ void tenPlayerDebugInfo(char *a1, int pid);
 
 void viewDrawPack(PLAYER *pPlayer, int x, int y)
 {
+#if APPVER_BLOODREV >= AV_BR_BL111A
     static int int_14C508;
+#endif
     if (pPlayer->at31d)
     {
         int width = 0;
@@ -1278,11 +1293,13 @@ void viewDrawPack(PLAYER *pPlayer, int x, int y)
             x += tilesizx[gPackIcons[nPack]] + 1;
         }
     }
+#if APPVER_BLOODREV >= AV_BR_BL111A
     if (pPlayer->at31d != int_14C508)
     {
         viewUpdatePages();
     }
     int_14C508 = pPlayer->at31d;
+#endif
 }
 
 void DrawPackItemInStatusBar(PLAYER *pPlayer, int x, int y, int x2, int y2)
@@ -1350,6 +1367,9 @@ static void UpdateStatusBar(int arg)
     else if (gViewSize > 1)
     {
         viewDrawPack(pPlayer, 160, 200-tilesizy[2200]);
+#if APPVER_BLOODREV < AV_BR_BL111A
+        pcBackground = numpages;
+#endif
         DrawStatMaskedSprite(2200, 160, 172, 16, nPalette);
         DrawPackItemInStatusBar(pPlayer, 265, 186, 260, 172);
         if (pXSprite->health >= 16 || (gGameClock&16) || pXSprite->health == 0)
@@ -1560,12 +1580,17 @@ void viewResizeView(int size)
         {
             gViewY0 += (tilesizy[2229]*ydim*((gNetPlayers+3)/4))/200;
         }
+#if APPVER_BLOODREV >= AV_BR_BL111A
         gViewX0S = divscale16(gViewX0, xscale);
         gViewY0S = divscale16(gViewY0, yscale);
         gViewX1S = divscale16(gViewX1, xscale);
         gViewY1S = divscale16(gViewY1, yscale);
         setview(gViewX0, gViewY0, gViewX1, gViewY1);
         gGameMessageMgr.SetCoordinates(gViewX0S+1, gViewY0S+1);
+#else
+        setview(gViewX0, gViewY0, gViewX1, gViewY1);
+        gGameMessageMgr.SetCoordinates(gViewX0+1, gViewY0+1);
+#endif
         return;
     }
     gViewX0 = 0;
@@ -1582,6 +1607,7 @@ void viewResizeView(int size)
     gViewX1 -= mulscale16((gViewSize-2)*xdim,4096);
     gViewY0 += mulscale16((gViewSize-2)*height,4096);
     gViewY1 -= mulscale16((gViewSize-2)*height,4096);
+#if APPVER_BLOODREV >= AV_BR_BL111A
     gViewX0S = divscale16(gViewX0, xscale);
     gViewY0S = divscale16(gViewY0, yscale);
     gViewX1S = divscale16(gViewX1, xscale);
@@ -1589,6 +1615,11 @@ void viewResizeView(int size)
     setview(gViewX0, gViewY0, gViewX1, gViewY1);
     gGameMessageMgr.SetCoordinates(gViewX0S + 1, gViewY0S + 1);
     viewUpdatePages();
+#else
+    setview(gViewX0, gViewY0, gViewX1, gViewY1);
+    gGameMessageMgr.SetCoordinates(gViewX0 + 1, gViewY0 + 1);
+    pcBackground = numpages;
+#endif
 }
 
 void UpdateFrame(void)
@@ -3098,9 +3129,30 @@ void viewDrawScreen(void)
                 arg = 2;
         }
     }
+#if APPVER_BLOODREV < AV_BR_BL111A
+    else
+        clearview(0);
+#endif
+
     if (gViewMode == 4)
     {
         gViewMap.func_25DB0(gView->pSprite);
+#if APPVER_BLOODREV < AV_BR_BL111A
+        char *pTitle = levelGetTitle();
+        if (pTitle)
+        {
+            sprintf(buffer, "%s: %s",
+                levelGetFilename(gGameOptions.nEpisode, gGameOptions.nLevel), pTitle);
+        }
+        else
+        {
+            sprintf(buffer, "%s", levelGetFilename(gGameOptions.nEpisode, gGameOptions.nLevel));
+        }
+        viewDrawText(3, buffer, gViewX1, gViewY0+1, -128, 0, 2, 0);
+
+        char *pMsg = gViewMap.Mode() ? "MAP FOLLOW MODE" : "MAP SCROLL MODE";
+        viewDrawText(3, pMsg, gViewX1, gViewY0+10, -128, 0, 2, 0);
+#endif
     }
     viewDrawInterface(delta);
     int zDelta = gView->at6f-gView->at67-(12<<8);
@@ -3123,6 +3175,7 @@ void viewDrawScreen(void)
     CalcFrameRate();
     if (gShowFrameRate)
     {
+#if APPVER_BLOODREV >= AV_BR_BL111A
         int fX = gViewMode == 3 ? gViewX1 : xdim;
         int fY = gViewMode == 3 ? gViewY0 : 0;
         if (gViewMode == 4)
@@ -3134,6 +3187,25 @@ void viewDrawScreen(void)
         fY += 8;
         sprintf(buffer, "pos=%d,%d,%d", gView->pSprite->x, gView->pSprite->y, gView->pSprite->z);
         printext256(fX-strlen(buffer)*4, fY, 31, -1, buffer, 1);
+#else
+        char buffer[16];
+        sprintf(buffer, "%3i", gFrameRate);
+        printext256(gViewX1-12, gViewY0, 31, -1, buffer, 1);
+        sprintf(buffer, "pos=%d,%d,%d", gView->pSprite->x, gView->pSprite->y, gView->pSprite->z);
+        printext256(gViewX1-100, gViewY0+10, 31, -1, buffer, 1);
+        if (gGameOptions.nGameType > GAMETYPE_0)
+        {
+            extern int gNetSentSizeThreshold;
+            sprintf(buffer, "%d", gNetSentSizeThreshold);
+            printext256(gViewX1 - 64, gViewY0, 31, -1, buffer, 1);
+            if (gPacketMode == PACKETMODE_2)
+                printext256(gViewX1 - 24, gViewY0, 31, -1, "B", 1);
+            else if (myconnectindex == connecthead)
+                printext256(gViewX1 - 24, gViewY0, 31, -1, "M", 1);
+            else
+                printext256(gViewX1 - 24, gViewY0, 31, -1, "S", 1);
+        }
+#endif
     }
     if (gPaused)
     {
@@ -3167,7 +3239,13 @@ void func_1EC78(int nTile, char *pText, char *pText2, char *pText3)
     }
     if (pText)
     {
-        rotatesprite(160<<16, 20<<16, 65536, 0, 2038, -128, 0, 78, 0, 0, xdim-1, ydim-1);
+        rotatesprite(160<<16, 20<<16, 65536, 0, 2038, -128, 0,
+#if APPVER_BLOODREV >= AV_BR_BL111A
+            78,
+#else
+            6,
+#endif
+            0, 0, xdim-1, ydim-1);
         viewDrawText(1, pText, 160, 20-vc/2, -128, 0, 1, 1);
     }
     if (pText2)

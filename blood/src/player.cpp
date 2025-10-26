@@ -1089,8 +1089,13 @@ static BOOL PickupWeapon(PLAYER *pPlayer, SPRITE *pWeapon)
         {
             pPlayer->atc3 = 0;
             pPlayer->atbe = nNewWeapon;
+#if APPVER_BLOODREV < AV_BR_BL111A
+            sfxPlay3DSound(pSprite, 777);
+#endif
         }
+#if APPVER_BLOODREV >= AV_BR_BL111A
         sfxPlay3DSound(pSprite, 777);
+#endif
         return 1;
     }
     if (actGetRespawnTime(pWeapon) == 0)

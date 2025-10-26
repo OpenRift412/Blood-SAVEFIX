@@ -70,7 +70,11 @@
 #include "keyboard.h"
 
 
+#if APPVER_BLOODREV >= AV_BR_BL111A
 int gMaxAlloc = 0x2000000;
+#else
+#define gMaxAlloc 0x2000000
+#endif
 
 ErrorHandler prevErrorHandler;
 
@@ -112,16 +116,24 @@ REGS regs;
 
 #if APPVER_BLOODREV >= AV_BR_BL121
 #define LDIFF2 0
+#define LDIFF4 0
 #define LDIFF1 0
 #define LDIFF3 0
 #elif APPVER_BLOODREV >= AV_BR_BL120
 #define LDIFF2 0
+#define LDIFF4 -4
 #define LDIFF1 -4
 #define LDIFF3 -4
-#else
+#elif APPVER_BLOODREV >= AV_BR_BL111A
 #define LDIFF2 -14
+#define LDIFF4 -64
 #define LDIFF1 -64
 #define LDIFF3 -95
+#else
+#define LDIFF2 -17
+#define LDIFF4 -69
+#define LDIFF1 -80
+#define LDIFF3 -110
 #endif
 
 BOOL CheckIfWindows(void)
@@ -629,7 +641,11 @@ void StartLevel(GAMEOPTIONS *gameOptions)
     viewSetErrorMessage("");
     viewResizeView(gViewSize);
     if (gGameOptions.nGameType == GAMETYPE_3)
+#if APPVER_BLOODREV >= AV_BR_BL111A
         gGameMessageMgr.SetCoordinates(gViewX0S+1,gViewY0S+15);
+#else
+        gGameMessageMgr.SetCoordinates(gViewX0+1,gViewY0+15);
+#endif
     netWaitForEveryone(0);
     gGameClock = 0;
     gPaused = 0;
@@ -1098,7 +1114,9 @@ SWITCH switches[] = {
     { "snd", 27, 1 },
     { "RFF", 28, 1 },
 #endif
+#if APPVER_BLOODREV >= AV_BR_BL111A
     { "MAXALLOC", 29, 1 },
+#endif
     { 0 }
 };
 
@@ -1110,7 +1128,8 @@ void ParseOptions(void)
         switch (option)
         {
         case -3:
-            ThrowError(1824+LDIFF1)("Invalid argument: %s", OptFull);
+            ThrowError(1824+LDIFF4)("Invalid argument: %s", OptFull);
+#if APPVER_BLOODREV >= AV_BR_BL111A
         case 29:
             if (OptArgc < 1)
                 ThrowError(1828+LDIFF1)("Missing argument");
@@ -1118,6 +1137,7 @@ void ParseOptions(void)
             if (!gMaxAlloc)
                 gMaxAlloc = 0x2000000;
             break;
+#endif
         case 24:
             char_148EED = 1;
             bQuickStart = 1;

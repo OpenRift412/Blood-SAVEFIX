@@ -57,6 +57,7 @@ AISTATE innocentBurnGoto = { 3, -1, 3600, NULL, aiMoveForward, thinkGoto, &zombi
 AISTATE innocentBurnSearch = { 3, -1, 3600, NULL, aiMoveForward, thinkSearch, NULL };
 AISTATE innocentBurnAttack = { 3, nBurnClient, 120, NULL, NULL, NULL, &zombieFBurnChase };
 
+#ifdef PLASMAPAK111
 AISTATE beastBurnChase = { 3, -1, 0, NULL, aiMoveForward, thinkChase, NULL };
 AISTATE beastBurnGoto = { 3, -1, 3600, NULL, aiMoveForward, thinkGoto, &beastBurnSearch };
 AISTATE beastBurnSearch = { 3, -1, 3600, NULL, aiMoveForward, thinkSearch, &beastBurnSearch };
@@ -66,6 +67,7 @@ AISTATE tinycalebBurnChase = { 3, -1, 0, NULL, aiMoveForward, thinkChase, NULL }
 AISTATE tinycalebBurnGoto = { 3, -1, 3600, NULL, aiMoveForward, thinkGoto, &tinycalebBurnSearch };
 AISTATE tinycalebBurnSearch = { 3, -1, 3600, NULL, aiMoveForward, thinkSearch, &tinycalebBurnSearch };
 AISTATE tinycalebBurnAttack = { 3, nBurnClient, 120, NULL, NULL, NULL, &tinycalebBurnChase };
+#endif
 
 static void BurnSeqCallback(int, int)
 {

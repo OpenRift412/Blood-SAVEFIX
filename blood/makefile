@@ -88,7 +88,7 @@ heat3.obj &
 engage.obj &
 choke.obj
 
-all : blood.exe .symbolic
+all : $(appver_exedef)\blood.exe .symbolic
 	@%null
 
 $(appver_exedef)\blood.exe: $(OBJS) tenblood.obj
@@ -104,7 +104,7 @@ $(appver_exedef)\blood.lnk: makefile
 	%append $^@ opt static
 	%append $^@ debug all
 	%append $^@ name blood
-	%append $^@ library ..\..\qtools\qtools.lib
+	%append $^@ library ..\..\qtools\$(appver_qtools)\qtools.lib
 	%append $^@ library ..\..\helix32\helix.lib
 	%append $^@ library ..\..\build\engine.lib
 	%append $^@ library ..\..\mact\mact386.lib

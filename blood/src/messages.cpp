@@ -38,9 +38,14 @@
 #include "gui.h"
 
 #if APPVER_BLOODREV >= AV_BR_BL120
+#define LDIFF2 0
 #define LDIFF1 0
-#else
+#elif APPVER_BLOODREV >= AV_BR_BL111A
+#define LDIFF2 0
 #define LDIFF1 -53
+#else
+#define LDIFF2 -12
+#define LDIFF1 -66
 #endif
 
 CPlayerMsg gPlayerMsg;
@@ -413,9 +418,15 @@ void CGameMessageMgr::Display(void)
         int v10 = at22;
         int v18 = at26;
         int vc = ClipHigh(v10*8, 48);
+#if APPVER_BLOODREV >= AV_BR_BL111A
         int v14 = gViewMode == 3 ? gViewX0S : 0;
         int v8 = (gViewMode == 3 ? at5 : 0) + at9;
-        for (int i = 0; i < v10; i++)
+        int i;
+#else
+        int i;
+        int v8 = at5 + at9;
+#endif
+        for (i = 0; i < v10; i++)
         {
             messageStruct *pMessage = &at2e[(v18+i)%16];
             if (gFrameClock >= pMessage->at0)
@@ -424,6 +435,7 @@ void CGameMessageMgr::Display(void)
                 at22--;
                 continue;
             }
+#if APPVER_BLOODREV >= AV_BR_BL111A
             viewDrawText(at11, pMessage->at4, v14+1, v8, vc, 0);
             if (gViewMode == 3)
             {
@@ -432,6 +444,9 @@ void CGameMessageMgr::Display(void)
                 if (v14+height > gViewX1S)
                     viewUpdatePages();
             }
+#else
+            viewDrawText(at11, pMessage->at4, windowx1+1, v8, vc, 0);
+#endif
             v8 += at15;
             vc = ClipLow(vc-64/v10, -128);
         }
@@ -464,10 +479,10 @@ void CGameMessageMgr::SetFont(int nFont)
         return;
 
     DICTNODE *hFont = gSysRes.Lookup(at11, "QFN");
-    dassert(hFont != NULL, 626);
+    dassert(hFont != NULL, 626+LDIFF2);
 
     QFONT *pFont = (QFONT*)gSysRes.Lock(hFont);
-    dassert(pFont != NULL, 629);
+    dassert(pFont != NULL, 629+LDIFF2);
     at11 = nFont;
     at15 = pFont->at13;
     gSysRes.Unlock(hFont);
@@ -476,8 +491,13 @@ void CGameMessageMgr::SetFont(int nFont)
 
 void CGameMessageMgr::SetCoordinates(int x, int y)
 {
+#if APPVER_BLOODREV >= AV_BR_BL111A
     at1 = ClipRange(x, 0, gViewX1S);
     at5 = ClipRange(y, 0, gViewY1S);
+#else
+    at1 = ClipRange(x, 0, windowx2);
+    at5 = ClipRange(y, 0, windowy2);
+#endif
 }
 
 void CGameMessageMgr::SetMessageTime(int nTime)
@@ -508,12 +528,19 @@ void CPlayerMsg::Draw(void)
     strcpy(buffer, at4);
     if (gGameClock & 16)
         strcat(buffer, "_");
+#if APPVER_BLOODREV >= AV_BR_BL111A
     int x = gViewMode == 3 ? gViewX0S : 0;
     int y = gViewMode == 3 ? gViewY0S : 0;
     if (gViewSize >= 1)
         y += tilesizy[2229]*((gNetPlayers+3)/4);
     viewDrawText(0, buffer, x+1,y+1, -128, 0);
     viewUpdatePages();
+#else
+    int y = windowy1+1;
+    if (gViewSize >= 1)
+        y += tilesizy[2229]*((gNetPlayers+3)/4);
+    viewDrawText(0, buffer, windowx1+1,y, -128, 0);
+#endif
 }
 
 BOOL CPlayerMsg::AddChar(char ch)

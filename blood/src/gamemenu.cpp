@@ -39,10 +39,22 @@
 
 #if APPVER_BLOODREV >= AV_BR_BL120
 #define LDIFF1 0
+#define LDIFF3 0
+#define LDIFF4 0
+#define LDIFF5 0
 #define LDIFF2 0
+#elif APPVER_BLOODREV >= AV_BR_BL111A
+#define LDIFF1 71
+#define LDIFF3 71
+#define LDIFF4 71
+#define LDIFF5 71
+#define LDIFF2 57
 #else
 #define LDIFF1 71
-#define LDIFF2 57
+#define LDIFF3 68
+#define LDIFF4 67
+#define LDIFF5 66
+#define LDIFF2 37
 #endif
 
 BOOL CGameMenuMgr::m_bInitialized = FALSE;
@@ -51,7 +63,12 @@ BOOL CGameMenuMgr::m_bActive = FALSE;
 CGameMenuMgr gGameMenuMgr;
 CMenuTextMgr gMenuTextMgr;
 
-static char buffer[21][45];
+#if APPVER_BLOODREV >= AV_BR_BL111A
+#define RESCOUNT 21
+#else
+#define RESCOUNT 10
+#endif
+static char buffer[RESCOUNT][45];
 
 CMenuTextMgr::CMenuTextMgr()
 {
@@ -229,7 +246,9 @@ void CGameMenuMgr::Draw(void)
     if (pActiveMenu)
     {
         pActiveMenu->Draw();
+#if APPVER_BLOODREV >= AV_BR_BL111A
         viewUpdatePages();
+#endif
     }
 }
 
@@ -375,8 +394,8 @@ BOOL CGameMenu::Event(CGameMenuEvent &event)
 
 void CGameMenu::Add(CGameMenuItem *pItem, BOOL active)
 {
-    dassert(pItem != NULL, 390+LDIFF1);
-    dassert(m_nItems < kMaxGameMenuItems, 391+LDIFF1);
+    dassert(pItem != NULL, 390+LDIFF3);
+    dassert(m_nItems < kMaxGameMenuItems, 391+LDIFF3);
     pItemList[m_nItems] = pItem;
     pItem->pMenu = this;
     if (active)
@@ -386,14 +405,14 @@ void CGameMenu::Add(CGameMenuItem *pItem, BOOL active)
 
 void CGameMenu::SetFocusItem(int nItem)
 {
-    dassert(nItem >= 0 && nItem < m_nItems && nItem < kMaxGameMenuItems, 408+LDIFF1);
+    dassert(nItem >= 0 && nItem < m_nItems && nItem < kMaxGameMenuItems, 408+LDIFF3);
     if (CanSelectItem(nItem))
         m_nFocus = at8 = nItem;
 }
 
 BOOL CGameMenu::CanSelectItem(int nItem)
 {
-    dassert(nItem >= 0 && nItem < m_nItems && nItem < kMaxGameMenuItems, 418+LDIFF1);
+    dassert(nItem >= 0 && nItem < m_nItems && nItem < kMaxGameMenuItems, 418+LDIFF3);
     CGameMenuItem *pItem = pItemList[nItem];
     if (pItem->CanShow() && pItem->CanFocus())
         return 1;
@@ -402,7 +421,8 @@ BOOL CGameMenu::CanSelectItem(int nItem)
 
 void CGameMenu::FocusPrevItem(void)
 {
-    dassert(m_nFocus >= -1 && m_nFocus < m_nItems && m_nFocus < kMaxGameMenuItems, 432+LDIFF1);
+    dassert(m_nFocus >= -1 && m_nFocus < m_nItems && m_nFocus < kMaxGameMenuItems, 432+LDIFF3);
+#if APPVER_BLOODREV >= AV_BR_BL111A
     int t = m_nFocus;
     do
     {
@@ -410,11 +430,20 @@ void CGameMenu::FocusPrevItem(void)
         if (CanSelectItem(m_nFocus))
             break;
     } while(t != m_nFocus);
+#else
+    while (1)
+    {
+        m_nFocus = DecRotate(m_nFocus, m_nItems);
+        if (CanSelectItem(m_nFocus))
+            break;
+    }
+#endif
 }
 
 void CGameMenu::FocusNextItem(void)
 {
-    dassert(m_nFocus >= -1 && m_nFocus < m_nItems && m_nFocus < kMaxGameMenuItems, 443+LDIFF1);
+    dassert(m_nFocus >= -1 && m_nFocus < m_nItems && m_nFocus < kMaxGameMenuItems, 443+LDIFF4);
+#if APPVER_BLOODREV >= AV_BR_BL111A
     int t = m_nFocus;
     do
     {
@@ -422,13 +451,21 @@ void CGameMenu::FocusNextItem(void)
         if (CanSelectItem(m_nFocus))
             break;
     } while(t != m_nFocus);
+#else
+    while (1)
+    {
+        m_nFocus = IncRotate(m_nFocus, m_nItems);
+        if (CanSelectItem(m_nFocus))
+            break;
+    }
+#endif
 }
 
 BOOL CGameMenu::IsFocusItem(CGameMenuItem *pItem)
 {
     if (m_nFocus < 0)
         return FALSE;
-    dassert(m_nFocus >= 0 && m_nFocus < m_nItems && m_nFocus < kMaxGameMenuItems, 457+LDIFF1);
+    dassert(m_nFocus >= 0 && m_nFocus < m_nItems && m_nFocus < kMaxGameMenuItems, 457+LDIFF5);
     return (pItemList[m_nFocus] == pItem) ? 1 : 0;
 }
 
@@ -738,7 +775,7 @@ void CGameMenuItem7EA1C::Setup(void)
     at24->Add(pItem, FALSE);
     at24->Add(&itemSorryPicCycle, TRUE);
     int y = 40;
-    for (int i = 0; i < 21; i++)
+    for (int i = 0; i < RESCOUNT; i++)
     {
         sprintf(buffer[i], "Line%ld", i+1);
         if (!at34->KeyExists(at48, buffer[i]))
@@ -856,12 +893,16 @@ void CGameMenuItem7EE34::Setup(void)
         return;
     CGameMenuItemTitle *pTitle = new CGameMenuItemTitle("Video Mode", 1, 160, 20, 2038);
     at28->Add(pTitle, FALSE);
+#if APPVER_BLOODREV < AV_BR_BL111A
+    at28->Add(&itemSorryPicCycle, TRUE);
+#endif
     if (!at2c)
     {
         at2c = new CGameMenu(1);
         pTitle = new CGameMenuItemTitle(" Mode Change ", 1, 160, 20, 2038);
         at2c->Add(pTitle, FALSE);
         at2c->Add(&itemSorryPicCycle, TRUE);
+#if APPVER_BLOODREV >= AV_BR_BL111A
         CGameMenuItem *pItem1 = new CGameMenuItemText("VIDEO MODE WAS SET", 1, 160, 90, 1);
         CGameMenuItem *pItem2 = new CGameMenuItemText("NOT ALL MODES Work correctly", 1, 160, 110, 1);
         CGameMenuItem *pItem3 = new CGameMenuItemText("Press ESC to exit", 3, 160, 140, 1);
@@ -871,6 +912,10 @@ void CGameMenuItem7EE34::Setup(void)
         pItem2->Clear1();
         at2c->Add(pItem3, TRUE);
         pItem3->Set1();
+#else
+        CGameMenuItem* pItem = new CGameMenuItemText("VIDEO MODE WAS SET", 1, 160, 90, 1);
+        at2c->Add(pItem, FALSE);
+#endif
         at2c->Add(&itemBloodQAV, FALSE);
     }
     getvalidvesamodes();
@@ -879,14 +924,20 @@ void CGameMenuItem7EE34::Setup(void)
     CGameMenuItemChain *pChain = new CGameMenuItemChain(buffer[0], 3, 0, y, 320, 1, at2c, -1, SetVideoMode, validmodecnt);
     at28->Add(pChain, TRUE);
     y += 20;
-    for (int i = 0; i < validmodecnt && i < 20; i++)
+    for (int i = 0; i < validmodecnt
+#if APPVER_BLOODREV >= AV_BR_BL111A
+        && i < 20
+#endif
+        ; i++)
     {
         sprintf(buffer[i+1], "%d x %d", validmodexdim[i], validmodeydim[i]);
         pChain = new CGameMenuItemChain(buffer[i+1], 3, 0, y, 320, 1, at2c, -1, SetVideoMode, i);
         at28->Add(pChain, FALSE);
+#if APPVER_BLOODREV >= AV_BR_BL111A
         if (validmodecnt > 10)
             y += 7;
         else
+#endif
             y += 15;
     }
     at28->Add(&itemBloodQAV, FALSE);
