@@ -2,10 +2,13 @@
 Matching decompilation of various versions Blood (1997) by nukeykt.
 
 ## Covered Blood versions
+* Shareware 1.10
 * Shareware 1.11 (23 September 1997)
+* Registered 1.10
 * Registered 1.11 (19 August 1997)
 * Registered 1.11 (23 September 1997)
 * Registered 1.20 (BLOOD.EXE from 3DFX patch, NOT 3DFX.EXE)
+* Plasma Pak 1.10
 * Plasma Pak 1.11 (19 August 1997)
 * Plasma Pak 1.11 (23 September 1997)
 * Plasma Pak 1.20 (BLOOD.EXE from 3DFX patch, NOT 3DFX.EXE)

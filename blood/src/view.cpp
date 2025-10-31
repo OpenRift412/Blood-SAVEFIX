@@ -1453,7 +1453,11 @@ static void UpdateStatusBar(int arg)
             TileHGauge(2260, 124, 175, pPlayer->at1ba, 65536);
         }
     }
+#if APPVER_BLOODREV >= AV_BR_BL111
     if (gGameOptions.nGameType >= GAMETYPE_1 || int_28E3D4 == 4)
+#else
+    if (gGameOptions.nGameType > GAMETYPE_1)
+#endif
     {
         if (gGameOptions.nGameType == GAMETYPE_3)
         {
@@ -2920,6 +2924,9 @@ void viewDrawScreen(void)
                 memcpy(bakMirrorGotpic, gotpic+510, 2);
                 memcpy(gotpic+510, otherMirrorGotpic, 2);
                 visibility = ClipLow(gVisibility-pOther->at362*32, 0);
+#if APPVER_BLOODREV < AV_BR_BL111
+                v50 = (v50 + 1024) & 2047;
+#endif
                 int vc8, vc4;
                 getzsofslope(vcc, vd8, vd4, &vc8, &vc4);
                 if (vd0 >= vc4)

@@ -15,6 +15,7 @@
  *
  */
 #include "typedefs.h"
+#include "globals.h"
 #include "db.h"
 #include "dude.h"
 
@@ -855,7 +856,11 @@ DUDEINFO dudeInfo[kDudeMax-kDudeBase] =
         34952,
         384,
         7, -1, -1,
+#if APPVER_BLOODREV >= AV_BR_BL111
         3, 1, 4, 4, 0, 4, 3,
+#else
+        10, 0, 10, 10, 0, 10, 10,
+#endif
         0, 0, 0, 0, 0, 0, 0,
         0,
         0

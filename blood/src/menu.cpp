@@ -358,8 +358,10 @@ void SetupMessagesMenu(void)
 void SetupControlsMenu(void)
 {
     sliderMouseSpeed.at24 = ClipRange(gMouseSensitivity, sliderMouseSpeed.at28, sliderMouseSpeed.at2c);
+#if APPVER_BLOODREV >= AV_BR_BL111
     sliderTurnSpeed.at24 = ClipRange(gTurnSpeed, sliderTurnSpeed.at28, sliderTurnSpeed.at2c);
     boolMouseFlipped.at20 = gMouseAimingFlipped;
+#endif
     menuControls.Add(&itemControlsTitle, 0);
     menuControls.Add(&sliderMouseSpeed, 1);
     menuControls.Add(&boolMouseFlipped, 0);

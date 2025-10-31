@@ -32,8 +32,10 @@
 
 #if APPVER_BLOODREV >= AV_BR_BL120
 #define LDIFF1 0
-#else
+#elif APPVER_BLOODREV >= AV_BR_BL111
 #define LDIFF1 1
+#else
+#define LDIFF1 -3
 #endif
 
 POINT2D earL, earR, earL0, earR0; // Ear position
@@ -78,8 +80,10 @@ void sfxInit(void)
         int_20E12C = FX_GetMaxReverbDelay();
 #else
     int_20E12C = FX_GetMaxReverbDelay();
+#if APPVER_BLOODREV >= AV_BR_BL111
     if (FXDevice == 8) // SoundScape
         int_20E12C = 0;
+#endif
 #endif
 }
 

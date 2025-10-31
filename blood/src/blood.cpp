@@ -118,22 +118,37 @@ REGS regs;
 #define LDIFF2 0
 #define LDIFF4 0
 #define LDIFF1 0
+#define LDIFF5 0
+#define LDIFF6 0
 #define LDIFF3 0
 #elif APPVER_BLOODREV >= AV_BR_BL120
 #define LDIFF2 0
 #define LDIFF4 -4
 #define LDIFF1 -4
+#define LDIFF5 -4
+#define LDIFF6 -4
 #define LDIFF3 -4
 #elif APPVER_BLOODREV >= AV_BR_BL111A
 #define LDIFF2 -14
 #define LDIFF4 -64
 #define LDIFF1 -64
+#define LDIFF5 -64
+#define LDIFF6 -64
 #define LDIFF3 -95
+#elif APPVER_BLOODREV >= AV_BR_BL111
+#define LDIFF2 -17
+#define LDIFF4 -69
+#define LDIFF1 -80
+#define LDIFF5 -80
+#define LDIFF6 -80
+#define LDIFF3 -110
 #else
 #define LDIFF2 -17
 #define LDIFF4 -69
 #define LDIFF1 -80
-#define LDIFF3 -110
+#define LDIFF5 -81
+#define LDIFF6 -82
+#define LDIFF3 -112
 #endif
 
 BOOL CheckIfWindows(void)
@@ -1182,7 +1197,9 @@ void ParseOptions(void)
                 ThrowError(1901+LDIFF1)("Missing argument");
             strcpy(gUserMapFilename, OptArgv[0]);
             bAddUserMap = 1;
+#if APPVER_BLOODREV >= AV_BR_BL111
             bNoDemo = 1;
+#endif
             break;
         case 3:
             if (gSyncRate != 1)
@@ -1192,7 +1209,7 @@ void ParseOptions(void)
             break;
         case 4:
             if (OptArgc < 1)
-                ThrowError(1917+LDIFF1)("Missing argument for -net parameter");
+                ThrowError(1917+LDIFF5)("Missing argument for -net parameter");
             if (gGameOptions.nGameType == GAMETYPE_0)
                 gGameOptions.nGameType = GAMETYPE_2;
             break;
@@ -1225,13 +1242,13 @@ void ParseOptions(void)
             break;
         case 13:
             if (OptArgc < 1)
-                ThrowError(1962+LDIFF1)("Missing argument");
+                ThrowError(1962+LDIFF5)("Missing argument");
             func_269D8(OptArgv[0]);
             bNoDemo = 1;
             break;
         case 26:
             if (OptArgc < 1)
-                ThrowError(1972+LDIFF1)("Missing argument");
+                ThrowError(1972+LDIFF5)("Missing argument");
             pUserTiles = (char*)malloc(strlen(OptArgv[0]+1));
             if (!pUserTiles)
                 return;
@@ -1239,7 +1256,7 @@ void ParseOptions(void)
             break;
         case 27:
             if (OptArgc < 1)
-                ThrowError(1984+LDIFF1)("Missing argument");
+                ThrowError(1984+LDIFF5)("Missing argument");
             szSoundRes = (char*)malloc(strlen(OptArgv[0]+1));
             if (!szSoundRes)
                 return;
@@ -1247,7 +1264,7 @@ void ParseOptions(void)
             break;
         case 28:
             if (OptArgc < 1)
-                ThrowError(1996+LDIFF1)("Missing argument");
+                ThrowError(1996+LDIFF5)("Missing argument");
             pUserRFF = (char*)malloc(strlen(OptArgv[0]+1));
             if (!pUserRFF)
                 return;
@@ -1255,18 +1272,18 @@ void ParseOptions(void)
             break;
         case 9:
             if (OptArgc < 1)
-                ThrowError(2008+LDIFF1)("Missing argument");
+                ThrowError(2008+LDIFF5)("Missing argument");
             gExplicitSetup = 1;
             strcpy(SetupFilename,OptArgv[0]);
             break;
         case 10:
             if (OptArgc < 1)
-                ThrowError(2018+LDIFF1)("Missing argument");
+                ThrowError(2018+LDIFF5)("Missing argument");
             gSkill = ClipRange(strtoul(OptArgv[0],NULL,0), 0, 4);
             break;
         case 15:
             if (OptArgc < 1)
-                ThrowError(2030+LDIFF1)("Missing argument");
+                ThrowError(2030+LDIFF5)("Missing argument");
             gSyncRate = ClipRange(strtoul(OptArgv[0],NULL,0), 1, 4);
             if (gPacketMode == PACKETMODE_1)
                 gSyncRate = 1;
@@ -1276,7 +1293,9 @@ void ParseOptions(void)
         case -2:
             strcpy(gUserMapFilename,OptFull);
             bAddUserMap = 1;
+#if APPVER_BLOODREV >= AV_BR_BL111
             bNoDemo = 1;
+#endif
             break;
         case 11:
             bNoCDAudio = 1;
@@ -1300,7 +1319,7 @@ void main(void)
 {
     CheckIfWindows();
     if (_grow_handles(40) < 40)
-        ThrowError(2089+LDIFF1)("Not enough file handles available.\nIncrease FILES=## value in CONFIG.SYS.");
+        ThrowError(2089+LDIFF6)("Not enough file handles available.\nIncrease FILES=## value in CONFIG.SYS.");
     memcpy(&gGameOptions, &gSingleGameOptions, sizeof(GAMEOPTIONS));
     ParseOptions();
     func_26988();

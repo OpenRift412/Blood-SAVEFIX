@@ -2,7 +2,7 @@
 if "%MSG%" == "" goto error
 set CHOICE=
 cls
-echo [1] QTools 1.11 (19 August 1997)
+echo [1] QTools 1.10
 echo [2] QTools 1.11 (23 September 1997)
 echo.
 echo [0] Cancel and quit
@@ -17,10 +17,10 @@ echo.
 
 if ERRORLEVEL 3 goto end
 if ERRORLEVEL 2 goto QT111A
-if ERRORLEVEL 1 goto QT111
+if ERRORLEVEL 1 goto QT110
 
-:QT111
-set CHOICE=QT111
+:QT110
+set CHOICE=QT110
 goto end
 :QT111A
 set CHOICE=QT111A

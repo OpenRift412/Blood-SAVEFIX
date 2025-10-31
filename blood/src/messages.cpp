@@ -43,14 +43,18 @@
 #elif APPVER_BLOODREV >= AV_BR_BL111A
 #define LDIFF2 0
 #define LDIFF1 -53
-#else
+#elif APPVER_BLOODREV >= AV_BR_BL111
 #define LDIFF2 -12
 #define LDIFF1 -66
+#else
+#define LDIFF2 -43
+#define LDIFF1 -98
 #endif
 
 CPlayerMsg gPlayerMsg;
 CCheatMgr gCheatMgr;
 
+#if APPVER_BLOODREV >= AV_BR_BL111
 void func_5A928(void)
 {
     for (int i = 0; i < NUMGAMEFUNCTIONS; i++)
@@ -67,6 +71,7 @@ void func_5A944(byte key)
             CONTROL_ClearButton(i);
     }
 }
+#endif
 
 static void SetGodMode(BOOL god)
 {
@@ -625,7 +630,9 @@ void CPlayerMsg::ProcessKeys(void)
                 break;
             }
         }
+#if APPVER_BLOODREV >= AV_BR_BL111
         func_5A944(key);
+#endif
     }
 }
 

@@ -21,13 +21,13 @@
 #include <dos.h>
 #include <time.h>
 #include "typedefs.h"
+#include "globals.h"
 #include "types.h"
 #include "config.h"
 #include "control.h"
 #include "file_lib.h"
 #include "function.h"
 #include "gamedefs.h"
-#include "globals.h"
 #include "scriplib.h"
 #include "util_lib.h"
 
@@ -78,7 +78,9 @@ BOOL gFullMap;
 BOOL gNoClip;
 BOOL gAimReticle;
 BOOL gShowWeapon;
+#if APPVER_BLOODREV >= AV_BR_BL111
 BOOL gMouseAim;
+#endif
 
 BOOL gMessageState = TRUE;
 int32 gMessageFont;
@@ -668,9 +670,15 @@ void CONFIG_ReadSetup( void )
       }
    
    SCRIPT_GetNumber( scripthandle, "Options","Detail",&gDetail);
+#if APPVER_BLOODREV >= AV_BR_BL111
    SCRIPT_GetBool( scripthandle, "Options","MouseAim",&gMouseAim);
    SCRIPT_GetBool( scripthandle, "Options","AutoRun",&gAutoRun);
    SCRIPT_GetBool( scripthandle, "Options","Interpolation",&gViewInterpolate);
+#else
+   dummy = gViewInterpolate;
+   SCRIPT_GetBoolean( scripthandle, "Options","Interpolation",&dummy);
+   gViewInterpolate = dummy;
+#endif
    SCRIPT_GetBool( scripthandle, "Options","ViewHBobbing",&gViewHBobbing);
    SCRIPT_GetBool( scripthandle, "Options","ViewVBobbing",&gViewVBobbing);
    SCRIPT_GetBool( scripthandle, "Options","FollowMap",&gFollowMap);
@@ -716,7 +724,9 @@ void CONFIG_WriteSetup( void )
 
    SCRIPT_PutNumber( scripthandle, "Controls","TurnSpeed", gTurnSpeed,false,false);
    SCRIPT_PutNumber( scripthandle, "Options","Detail", gDetail,false,false);
+#if APPVER_BLOODREV >= AV_BR_BL111
    SCRIPT_PutBoolean( scripthandle, "Options","MouseAim", gMouseAim);
+#endif
    SCRIPT_PutBoolean( scripthandle, "Options","AutoRun", gAutoRun);
    SCRIPT_PutBoolean( scripthandle, "Options","Interpolation", gViewInterpolate);
    SCRIPT_PutBoolean( scripthandle, "Options","ViewHBobbing", gViewHBobbing);

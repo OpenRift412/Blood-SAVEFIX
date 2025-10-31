@@ -33,10 +33,25 @@
 
 #if APPVER_BLOODREV >= AV_BR_BL120
 #define LDIFF1 0
+#define LDIFF3 0
+#define LDIFF4 0
+#define LDIFF5 0
+#define LDIFF6 0
 #define LDIFF2 0
+#elif APPVER_BLOODREV >= AV_BR_BL111
+#define LDIFF1 -1
+#define LDIFF3 -1
+#define LDIFF4 -1
+#define LDIFF5 -1
+#define LDIFF6 -1
+#define LDIFF2 -20
 #else
 #define LDIFF1 -1
-#define LDIFF2 -20
+#define LDIFF3 -25
+#define LDIFF4 -32
+#define LDIFF5 -36
+#define LDIFF6 -15
+#define LDIFF2 -34
 #endif
 
 SEQINST siWall[kMaxXWalls];
@@ -292,34 +307,57 @@ void SEQINST::Update(ACTIVE *pActive)
         clientCallback[atc](pActive->type, pActive->xindex);
 }
 
-SEQINST * GetInstance(int a1, int a2)
+SEQINST * GetInstance(int a1, int nXIndex)
 {
+#if APPVER_BLOODREV >= AV_BR_BL111
     switch (a1)
     {
     case 0:
-        if (a2 > 0 && a2 < kMaxXWalls) return &siWall[a2];
+        if (nXIndex > 0 && nXIndex < kMaxXWalls) return &siWall[nXIndex];
         break;
     case 1:
-        if (a2 > 0 && a2 < kMaxXSectors) return &siCeiling[a2];
+        if (nXIndex > 0 && nXIndex < kMaxXSectors) return &siCeiling[nXIndex];
         break;
     case 2:
-        if (a2 > 0 && a2 < kMaxXSectors) return &siFloor[a2];
+        if (nXIndex > 0 && nXIndex < kMaxXSectors) return &siFloor[nXIndex];
         break;
     case 3:
-        if (a2 > 0 && a2 < kMaxXSprites) return &siSprite[a2];
+        if (nXIndex > 0 && nXIndex < kMaxXSprites) return &siSprite[nXIndex];
         break;
     case 4:
-        if (a2 > 0 && a2 < kMaxXWalls) return &siMasked[a2];
+        if (nXIndex > 0 && nXIndex < kMaxXWalls) return &siMasked[nXIndex];
         break;
     }
     return NULL;
+#else
+    switch (a1)
+    {
+    case 0:
+        dassert(nXIndex > 0 && nXIndex < kMaxXWalls, 358);
+        return &siWall[nXIndex];
+    case 1:
+        dassert(nXIndex > 0 && nXIndex < kMaxXSectors, 362);
+        return &siCeiling[nXIndex];
+    case 2:
+        dassert(nXIndex > 0 && nXIndex < kMaxXSectors, 366);
+        return &siFloor[nXIndex];
+    case 3:
+        dassert(nXIndex > 0 && nXIndex < kMaxXSprites, 370);
+        return &siSprite[nXIndex];
+    case 4:
+        dassert(nXIndex > 0 && nXIndex < kMaxXWalls, 374);
+        return &siMasked[nXIndex];
+    }
+    ThrowError(379)("GetInstance: unexpected object type");
+    return NULL;
+#endif
 }
 
 void UnlockInstance(SEQINST *pInst)
 {
-    dassert(pInst != NULL, 411+LDIFF1);
-    dassert(pInst->hSeq != NULL, 412+LDIFF1);
-    dassert(pInst->pSequence != NULL, 413+LDIFF1);
+    dassert(pInst != NULL, 411+LDIFF3);
+    dassert(pInst->hSeq != NULL, 412+LDIFF3);
+    dassert(pInst->pSequence != NULL, 413+LDIFF3);
     gSysRes.Unlock(pInst->hSeq);
     pInst->hSeq = NULL;
     pInst->pSequence = NULL;
@@ -329,11 +367,13 @@ void UnlockInstance(SEQINST *pInst)
 void seqSpawn(int a1, int a2, int a3, int a4)
 {
     SEQINST *pInst = GetInstance(a2,a3);
+#if APPVER_BLOODREV >= AV_BR_BL111
     if (!pInst)
         return;
+#endif
     DICTNODE *hSeq = gSysRes.Lookup(a1, "SEQ");
     if (!hSeq)
-        ThrowError(435+LDIFF1)("Missing sequence #%d", a1);
+        ThrowError(435+LDIFF4)("Missing sequence #%d", a1);
     int i = activeCount;
     if (pInst->at13)
     {
@@ -345,13 +385,13 @@ void seqSpawn(int a1, int a2, int a3, int a4)
             if (activeList[i].type == a2 && activeList[i].xindex == a3)
                 break;
         }
-        dassert(i < activeCount, 452+LDIFF1);
+        dassert(i < activeCount, 452+LDIFF4);
     }
     Seq *pSeq = (Seq*)gSysRes.Lock(hSeq);
     if (memcmp(pSeq->signature, "SEQ\x1a", 4) != 0)
-        ThrowError(458+LDIFF1)("Invalid sequence %d", a1);
+        ThrowError(458+LDIFF4)("Invalid sequence %d", a1);
     if ((pSeq->version & 0xff00) != 0x300)
-        ThrowError(461+LDIFF1)("Sequence %d is obsolete version", a1);
+        ThrowError(461+LDIFF4)("Sequence %d is obsolete version", a1);
     pInst->hSeq = hSeq;
     pInst->pSequence = pSeq;
     pInst->at8 = a1;
@@ -361,7 +401,7 @@ void seqSpawn(int a1, int a2, int a3, int a4)
     pInst->frameIndex = 0;
     if (i == activeCount)
     {
-        dassert(activeCount < kMaxSequences, 473+LDIFF1);
+        dassert(activeCount < kMaxSequences, 473+LDIFF4);
         activeList[activeCount].type = a2;
         activeList[activeCount].xindex = a3;
         activeCount++;
@@ -372,7 +412,11 @@ void seqSpawn(int a1, int a2, int a3, int a4)
 void seqKill(int a1, int a2)
 {
     SEQINST *pInst = GetInstance(a1, a2);
-    if (!pInst || !pInst->at13)
+#if APPVER_BLOODREV >= AV_BR_BL111
+    if (!pInst)
+        return;
+#endif
+    if (!pInst->at13)
         return;
     int i;
     for (i = 0; i < activeCount; i++)
@@ -380,7 +424,7 @@ void seqKill(int a1, int a2)
         if (activeList[i].type == a1 && activeList[i].xindex == a2)
             break;
     }
-    dassert(i < activeCount, 499+LDIFF1);
+    dassert(i < activeCount, 499+LDIFF5);
     activeCount--;
     activeList[i] = activeList[activeCount];
     pInst->at13 = 0;
@@ -414,7 +458,11 @@ void seqKillAll(void)
 int seqGetStatus(int a1, int a2)
 {
     SEQINST *pInst = GetInstance(a1, a2);
-    if (pInst && pInst->at13)
+#if APPVER_BLOODREV >= AV_BR_BL111
+    if (!pInst)
+        return -1;
+#endif
+    if (pInst->at13)
         return pInst->frameIndex;
     return -1;
 }
@@ -427,13 +475,29 @@ int seqGetID(int a1, int a2)
     return -1;
 }
 
+#if APPVER_BLOODREV < AV_BR_BL111
+void seqMoveInstance(int a1, int a2, int a3)
+{
+    int i;
+    for (i = 0; i < activeCount; i++)
+    {
+        if (activeList[i].type == a1 && activeList[i].xindex == a2)
+        {
+            activeList[i].xindex = a3;
+            *GetInstance(a1, a3) = *GetInstance(a1, a2);
+            break;
+        }
+    }
+}
+#endif
+
 void seqProcess(int a1)
 {
     for (int i = 0; i < activeCount; i++)
     {
         SEQINST *pInst = GetInstance(activeList[i].type, activeList[i].xindex);
         Seq *pSeq = pInst->pSequence;
-        dassert(pInst->frameIndex < pSeq->nFrames, 594+LDIFF1);
+        dassert(pInst->frameIndex < pSeq->nFrames, 594+LDIFF6);
         pInst->at10 -= a1;
         while (pInst->at10 < 0)
         {
@@ -453,7 +517,7 @@ void seqProcess(int a1)
                         case 3:
                         {
                             int nSprite = xsprite[activeList[i].xindex].reference;
-                            dassert(nSprite >= 0 && nSprite < kMaxSprites, 618+LDIFF1);
+                            dassert(nSprite >= 0 && nSprite < kMaxSprites, 618+LDIFF6);
                             evKill(nSprite, 3);
 #if APPVER_BLOODREV >= AV_BR_BL120
                             if ((sprite[nSprite].flags & kSpriteFlag4) && sprite[nSprite].inittype >= 200 && sprite[nSprite].inittype < 254)
