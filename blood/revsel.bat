@@ -25,7 +25,7 @@ echo along with TASM 3.1.
 echo.
 echo %MSG%
 set MSG=
-choice /S /C:123456789AaBbCc0 /N
+choice /S /C:123456789AaBbCcDdEeFf0 /N
 echo.
 
 if ERRORLEVEL 22 goto end
