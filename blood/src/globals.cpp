@@ -84,7 +84,7 @@ char gBuildTime[] = "11:42:52";
 char gBuildTime[] = "11:39:05";
 #  endif
 # else
-char gBuildTime[] = "XX:XX:XX";
+char gBuildTime[] = "11:33:31";
 # endif
 const BLOODVERSION gGameVersion = { 11, 1 };
 #else
