@@ -5,6 +5,9 @@ Matching decompilation of various versions Blood (1997) by nukeykt.
 * Shareware 1.10
 * Shareware 1.11 (19 August 1997)
 * Shareware 1.11 (23 September 1997)
+* Retail Shareware 1.10
+* Retail Shareware 1.11 (19 August 1997)
+* Retail Shareware 1.11 (23 September 1997)
 * Registered 1.10
 * Registered 1.11 (19 August 1997)
 * Registered 1.11 (23 September 1997)

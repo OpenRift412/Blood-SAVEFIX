@@ -72,7 +72,11 @@ char gBuildTime[] = "13:23:56";
 char gBuildTime[] = "13:20:08";
 #  endif
 # else
+#  ifdef SWRETAIL
+char gBuildTime[] = "13:17:24";
+#  else
 char gBuildTime[] = "13:14:36";
+#  endif
 # endif
 const BLOODVERSION gGameVersion = { 11, 1 };
 #elif APPVER_BLOODREV >= AV_BR_BL111
@@ -84,7 +88,11 @@ char gBuildTime[] = "11:42:52";
 char gBuildTime[] = "11:39:05";
 #  endif
 # else
+#  ifdef SWRETAIL
+char gBuildTime[] = "11:36:21";
+#  else
 char gBuildTime[] = "11:33:31";
+#  endif
 # endif
 const BLOODVERSION gGameVersion = { 11, 1 };
 #else
@@ -96,7 +104,11 @@ char gBuildTime[] = "16:01:44";
 char gBuildTime[] = "15:57:55";
 #  endif
 # else
+#  ifdef SWRETAIL
+char gBuildTime[] = "15:55:11";
+#  else
 char gBuildTime[] = "15:52:20";
+#  endif
 # endif
 const BLOODVERSION gGameVersion = { 10, 1 };
 #endif

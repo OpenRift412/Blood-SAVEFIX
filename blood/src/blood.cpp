@@ -1423,7 +1423,7 @@ void main(void)
     LockClockStrobe();
     timerRegisterClient(ClockStrobe, 120);
     timerInstall();
-#ifdef SHAREWARE
+#if defined(SHAREWARE) && !defined(SWRETAIL)
     bNoCDAudio = 1;
 #endif
     int_148E14 = -1;

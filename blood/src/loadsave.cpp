@@ -199,7 +199,11 @@ public:
 };
 
 #ifdef SHAREWARE
+#ifdef SWRETAIL
+#define RELEASEID 2
+#else
 #define RELEASEID 1
+#endif
 #else
 #ifdef PLASMAPAK
 #define RELEASEID 4

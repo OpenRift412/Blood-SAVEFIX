@@ -323,7 +323,7 @@ CGameMenuItem7EA1C itemOnline2(
 CGameMenuItem7EA1C itemOnline3("HEAT", 1, 0, 85, 320, "matt", "HEAT", 1);
 CGameMenuItem7EA1C itemOnline4("KALI", 1, 0, 105, 320, "matt", "KALI", 1);
 CGameMenuItem7EA1C itemOnline5("MPATH", 1, 0, 125, 320, "matt", "MPATH", 1);
-#ifdef SHAREWARE
+#if defined(SHAREWARE) && !defined(SWRETAIL)
 CGameMenuItem7EA1C itemOnline6("TEN", 1, 0, 145, 320, "matt", "TEN", 1);
 #else
 CGameMenuItemChain itemOnline6("TEN", 1, 0, 145, 320, 1, NULL, -1, TenProcess);
