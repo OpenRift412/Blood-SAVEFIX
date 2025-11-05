@@ -209,14 +209,25 @@ void sndStartSample(ulong nSound, int nVolume, int nChannel, BOOL bLoop)
     if (bLoop)
     {
         int nLoopStart = pEffect->loopStart;
-        int rate = GetRate(pEffect->format);
+        int rate =
+#ifdef SHAREWARE
+            GetRate(1);
+#else
+            GetRate(pEffect->format);
+#endif
         pChannel->at0 = FX_PlayLoopedRaw(pData, nSize, pData+nLoopStart, pData+nLoopEnd, rate,
             0, nVolume, nVolume, nVolume, nVolume, (ulong)pChannel);
         pChannel->at4 |= 1;
     }
     else
     {
-        pChannel->at0 = FX_PlayRaw(pData, nSize, GetRate(pEffect->format), 0, nVolume, nVolume, nVolume, nVolume, (ulong)pChannel);
+        pChannel->at0 = FX_PlayRaw(pData, nSize,
+#ifdef SHAREWARE
+            GetRate(1),
+#else
+            GetRate(pEffect->format),
+#endif
+            0, nVolume, nVolume, nVolume, nVolume, (ulong)pChannel);
         pChannel->at4 &= ~1;
     }
 }

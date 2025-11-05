@@ -112,7 +112,9 @@ public:
         kCheatMax
     };
     static const unsigned long kCheatFlagsNone;
+#if APPVER_BLOODREV >= AV_BR_BL120
     static const unsigned long kCheatFlags0;
+#endif
     struct CHEATINFO
     {
         char *pzString;
@@ -123,7 +125,11 @@ public:
     CCheatMgr() {}
     void func_5BCF4(void);
     BOOL Check(char *);
+#if APPVER_BLOODREV >= AV_BR_BL120
     void Process(CHEATCODE nCheatCode, char* pzArgs = NULL);
+#else
+    void Process(CHEATCODE nCheatCode);
+#endif
 };
 
 extern CGameMessageMgr gGameMessageMgr;

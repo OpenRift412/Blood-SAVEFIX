@@ -70,6 +70,12 @@
 #include "keyboard.h"
 
 
+#if APPVER_BLOODREV >= AV_BR_BL111A
+int gMaxAlloc = 0x2000000;
+#else
+#define gMaxAlloc 0x2000000
+#endif
+
 ErrorHandler prevErrorHandler;
 
 BOOL gExplicitSetup;
@@ -82,6 +88,12 @@ char gUserMapFilename[144];
 
 BOOL bAddUserMap;
 BOOL char_148EE9;
+
+#if APPVER_BLOODREV >= AV_BR_BL120
+BOOL bQuickStart = 1;
+#else
+BOOL bQuickStart;
+#endif
 BOOL bNoDemo;
 BOOL char_148EEB;
 BOOL char_148EEC;
@@ -102,9 +114,42 @@ BOOL gRestartGame;
 
 REGS regs;
 
-int gMaxAlloc = 0x2000000;
-
-BOOL bQuickStart = 1;
+#if APPVER_BLOODREV >= AV_BR_BL121
+#define LDIFF2 0
+#define LDIFF4 0
+#define LDIFF1 0
+#define LDIFF5 0
+#define LDIFF6 0
+#define LDIFF3 0
+#elif APPVER_BLOODREV >= AV_BR_BL120
+#define LDIFF2 0
+#define LDIFF4 -4
+#define LDIFF1 -4
+#define LDIFF5 -4
+#define LDIFF6 -4
+#define LDIFF3 -4
+#elif APPVER_BLOODREV >= AV_BR_BL111A
+#define LDIFF2 -14
+#define LDIFF4 -64
+#define LDIFF1 -64
+#define LDIFF5 -64
+#define LDIFF6 -64
+#define LDIFF3 -95
+#elif APPVER_BLOODREV >= AV_BR_BL111
+#define LDIFF2 -17
+#define LDIFF4 -69
+#define LDIFF1 -80
+#define LDIFF5 -80
+#define LDIFF6 -80
+#define LDIFF3 -110
+#else
+#define LDIFF2 -17
+#define LDIFF4 -69
+#define LDIFF1 -80
+#define LDIFF5 -81
+#define LDIFF6 -82
+#define LDIFF3 -112
+#endif
 
 BOOL CheckIfWindows(void)
 {
@@ -127,19 +172,19 @@ void func_10148(void)
     char temp[20];
     IniFile *iniFile = new IniFile(char_148ef0);
     if (!iniFile || !iniFile->SectionExists("options"))
-        ThrowError(206)("Section [%s] expected in %s", "options", char_148ef0);
+        ThrowError(206+LDIFF2)("Section [%s] expected in %s", "options", char_148ef0);
     char *val = iniFile->GetKeyString("options", "Online", "");
     strncpy(temp, val, 20);
     if (!stricmp(temp, "mpath"))
     {
         if (func_83370() < 0)
-            ThrowError(219)("Can't initailize MPATH Service.  Please check your installation.");
+            ThrowError(219+LDIFF2)("Can't initailize MPATH Service.  Please check your installation.");
         gSyncRate = 4;
     }
     else if (!stricmp(temp, "engage"))
     {
         if (func_83D80())
-            ThrowError(233)("Can't initailize ENGAGE Service.  Please check your installation.");
+            ThrowError(233+LDIFF2)("Can't initailize ENGAGE Service.  Please check your installation.");
     }
     else if (!stricmp(temp, "commit"))
     {
@@ -148,7 +193,7 @@ void func_10148(void)
     {
         int status = tenBloodInit();
         if (status)
-            ThrowError(252)("Error %d initializing TEN", status);
+            ThrowError(252+LDIFF2)("Error %d initializing TEN", status);
         else
             tioPrint("initialized TEN");
     }
@@ -158,11 +203,11 @@ void func_10148(void)
     else if (!stricmp(temp, "heat"))
     {
         if (func_835B0() < 0)
-            ThrowError(269)("Cannot initialize the HEAT service.  Please check your installation.");
+            ThrowError(269+LDIFF2)("Cannot initialize the HEAT service.  Please check your installation.");
     }
     else
     {
-        ThrowError(282)("Unknown Online Service specified in %s", char_148ef0);
+        ThrowError(282+LDIFF2)("Unknown Online Service specified in %s", char_148ef0);
     }
     delete iniFile;
 }
@@ -171,7 +216,7 @@ void func_10324(void)
 {
     IniFile *iniFile = new IniFile(char_148ef0);
     if (!iniFile || !iniFile->SectionExists("options"))
-        ThrowError(300)("Section [%s] expected in %s", "options", char_148ef0);
+        ThrowError(300+LDIFF2)("Section [%s] expected in %s", "options", char_148ef0);
     if (char_148EEC)
     {
         gPacketStartGame.gameType = iniFile->GetKeyHex("options", "GameType", 2);
@@ -183,7 +228,11 @@ void func_10324(void)
         gPacketStartGame.monsterSettings = iniFile->GetKeyHex("options", "MonsterSettings", 1);
         gPacketStartGame.weaponSettings = iniFile->GetKeyHex("options", "WeaponSettings", 1);
         gPacketStartGame.itemSettings = iniFile->GetKeyHex("options", "ItemSettings", 1);
+#ifdef SHAREWARE
+        gPacketStartGame.respawnSettings = 0;
+#else
         gPacketStartGame.respawnSettings = iniFile->GetKeyHex("options", "RespawnSettings", 0);
+#endif
         gPacketStartGame.unk = 0;
         gPacketStartGame.userMapName[0] = 0;
         char *um = iniFile->GetKeyString("options", "UserMapName", "");
@@ -233,8 +282,10 @@ void PreloadDudeCache(SPRITE *pSprite)
     {
     case 201:
     case 202:
+#ifdef PLASMAPAK
     case 247:
     case 248:
+#endif
         seqCache(pDudeInfo->seqStartID+6);
         seqCache(pDudeInfo->seqStartID+7);
         seqCache(pDudeInfo->seqStartID+8);
@@ -243,7 +294,27 @@ void PreloadDudeCache(SPRITE *pSprite)
         seqCache(pDudeInfo->seqStartID+14);
         seqCache(pDudeInfo->seqStartID+15);
         break;
+    case 205:
+        seqCache(pDudeInfo->seqStartID+12);
+        seqCache(pDudeInfo->seqStartID+9);
+    case 244:
+        seqCache(pDudeInfo->seqStartID+10);
+    case 203:
+        seqCache(pDudeInfo->seqStartID+6);
+        seqCache(pDudeInfo->seqStartID+7);
+        seqCache(pDudeInfo->seqStartID+8);
+        seqCache(pDudeInfo->seqStartID+11);
+        seqCache(pDudeInfo->seqStartID+13);
+        seqCache(pDudeInfo->seqStartID+14);
+        break;
     case 204:
+        seqCache(pDudeInfo->seqStartID+6);
+        seqCache(pDudeInfo->seqStartID+7);
+        seqCache(pDudeInfo->seqStartID+8);
+        seqCache(pDudeInfo->seqStartID+9);
+        seqCache(pDudeInfo->seqStartID+10);
+        seqCache(pDudeInfo->seqStartID+11);
+        break;
     case 217:
         seqCache(pDudeInfo->seqStartID+6);
         seqCache(pDudeInfo->seqStartID+7);
@@ -305,22 +376,11 @@ void PreloadDudeCache(SPRITE *pSprite)
         seqCache(pDudeInfo->seqStartID+6);
         seqCache(pDudeInfo->seqStartID+7);
         break;
+#ifdef PLASMAPAK
     case 249:
         seqCache(pDudeInfo->seqStartID+6);
         break;
-    case 205:
-        seqCache(pDudeInfo->seqStartID+12);
-        seqCache(pDudeInfo->seqStartID+9);
-    case 244:
-        seqCache(pDudeInfo->seqStartID+10);
-    case 203:
-        seqCache(pDudeInfo->seqStartID+6);
-        seqCache(pDudeInfo->seqStartID+7);
-        seqCache(pDudeInfo->seqStartID+8);
-        seqCache(pDudeInfo->seqStartID+11);
-        seqCache(pDudeInfo->seqStartID+13);
-        seqCache(pDudeInfo->seqStartID+14);
-        break;
+#endif
     }
 }
 
@@ -571,7 +631,9 @@ void StartLevel(GAMEOPTIONS *gameOptions)
         }
     }
     gameOptions->uGameFlags &= ~3;
+#if APPVER_BLOODREV >= AV_BR_BL120
     scrSetDac();
+#endif
     PreloadCache();
     InitMirrors();
     gFrameClock = 0;
@@ -594,7 +656,11 @@ void StartLevel(GAMEOPTIONS *gameOptions)
     viewSetErrorMessage("");
     viewResizeView(gViewSize);
     if (gGameOptions.nGameType == GAMETYPE_3)
+#if APPVER_BLOODREV >= AV_BR_BL111A
         gGameMessageMgr.SetCoordinates(gViewX0S+1,gViewY0S+15);
+#else
+        gGameMessageMgr.SetCoordinates(gViewX0+1,gViewY0+15);
+#endif
     netWaitForEveryone(0);
     gGameClock = 0;
     gPaused = 0;
@@ -965,7 +1031,20 @@ void GameErrorHandler(const Error &err)
 
 void BannerToTIO(void)
 {
+#ifdef REGISTERED
+# ifdef PLASMAPAK
+#  if APPVER_BLOODREV >= AV_BR_BL121
     sprintf(buffer, "One Unit: WHOLE BLOOD %s [%s] -- DO NOT DISTRIBUTE", GetVersionString(), gBuildDate);
+#  else
+    sprintf(buffer, "BLOOD With PLASMA PAK %s [%s] -- DO NOT DISTRIBUTE", GetVersionString(), gBuildDate);
+#  endif
+# else
+    sprintf(buffer, "BLOOD RELEASE %s [%s] [%s] -- DO NOT DISTRIBUTE", GetVersionString(), gBuildDate, gBuildTime);
+# endif
+#else // SHAREWARE
+    sprintf(buffer, "BLOOD SHAREWARE %s [%s] -- BLOOD: SPILL SOME!", GetVersionString(), gBuildDate);
+#endif
+        
     tioCenterString(0, 0, tioScreenCols-1, buffer, 0x4e);
     tioCenterString(tioScreenRows-1, 0, tioScreenCols-1, "Copyright (c)1994-1997 Monolith Productions Inc.", 0x4e);
     tioWindow(1, 0, tioScreenRows-3, tioScreenCols);
@@ -1002,12 +1081,18 @@ void ShowUsage(void)
     puts("-skill        Set player handicap; Range:0..4; Default:2; (NOT difficulty level.)");
     puts("-quick        Skip Intro screens and get right to the game");
     puts("-pname        Override player name setting from config file");
+#ifdef SHAREWARE
+    puts("-map          Specify a user map (registered version only)");
+    puts("-playback     Play back a demo   (registered version only)");
+    puts("-record       Record a demo      (registered version only)");
+#else
     puts("-map          Specify a user map");
     puts("-playback     Play back a demo");
     puts("-record       Record a demo");
     puts("-art          Specify an art base file name");
     puts("-snd          Specify an RFF Sound file name");
     puts("-RFF          Specify an RFF file for Blood game resources");
+#endif
     puts("-ini          Specify an INI file name (default is blood.ini)");
     exit(0);
 }
@@ -1039,10 +1124,14 @@ SWITCH switches[] = {
     { "silentaim", 23, 0 },
     { "ten", 24, 0 },
     { "nodemo", 25, 0 },
+#ifdef REGISTERED
     { "art", 26, 1 },
     { "snd", 27, 1 },
     { "RFF", 28, 1 },
+#endif
+#if APPVER_BLOODREV >= AV_BR_BL111A
     { "MAXALLOC", 29, 1 },
+#endif
     { 0 }
 };
 
@@ -1054,14 +1143,16 @@ void ParseOptions(void)
         switch (option)
         {
         case -3:
-            ThrowError(1824)("Invalid argument: %s", OptFull);
+            ThrowError(1824+LDIFF4)("Invalid argument: %s", OptFull);
+#if APPVER_BLOODREV >= AV_BR_BL111A
         case 29:
             if (OptArgc < 1)
-                ThrowError(1828)("Missing argument");
+                ThrowError(1828+LDIFF1)("Missing argument");
             gMaxAlloc = atoi(OptArgv[0]) << 20;
             if (!gMaxAlloc)
                 gMaxAlloc = 0x2000000;
             break;
+#endif
         case 24:
             char_148EED = 1;
             bQuickStart = 1;
@@ -1075,7 +1166,7 @@ void ParseOptions(void)
             char_148EEC = 1;
         case 20:
             if (OptArgc < 1)
-                ThrowError(1863)("Missing argument");
+                ThrowError(1863+LDIFF1)("Missing argument");
             strncpy(char_148ef0,OptArgv[0],13);
             char_148ef0[12] = 0;
             bQuickStart = 1;
@@ -1097,16 +1188,18 @@ void ParseOptions(void)
             break;
         case 21:
             if (OptArgc < 1)
-                ThrowError(1894)("Missing argument");
+                ThrowError(1894+LDIFF1)("Missing argument");
             strcpy(zCustomName, OptArgv[0]);
             bCustomName = 1;
             break;
         case 2:
             if (OptArgc < 1)
-                ThrowError(1901)("Missing argument");
+                ThrowError(1901+LDIFF1)("Missing argument");
             strcpy(gUserMapFilename, OptArgv[0]);
             bAddUserMap = 1;
+#if APPVER_BLOODREV >= AV_BR_BL111
             bNoDemo = 1;
+#endif
             break;
         case 3:
             if (gSyncRate != 1)
@@ -1116,7 +1209,7 @@ void ParseOptions(void)
             break;
         case 4:
             if (OptArgc < 1)
-                ThrowError(1917)("Missing argument for -net parameter");
+                ThrowError(1917+LDIFF5)("Missing argument for -net parameter");
             if (gGameOptions.nGameType == GAMETYPE_0)
                 gGameOptions.nGameType = GAMETYPE_2;
             break;
@@ -1149,13 +1242,13 @@ void ParseOptions(void)
             break;
         case 13:
             if (OptArgc < 1)
-                ThrowError(1962)("Missing argument");
+                ThrowError(1962+LDIFF5)("Missing argument");
             func_269D8(OptArgv[0]);
             bNoDemo = 1;
             break;
         case 26:
             if (OptArgc < 1)
-                ThrowError(1972)("Missing argument");
+                ThrowError(1972+LDIFF5)("Missing argument");
             pUserTiles = (char*)malloc(strlen(OptArgv[0]+1));
             if (!pUserTiles)
                 return;
@@ -1163,7 +1256,7 @@ void ParseOptions(void)
             break;
         case 27:
             if (OptArgc < 1)
-                ThrowError(1984)("Missing argument");
+                ThrowError(1984+LDIFF5)("Missing argument");
             szSoundRes = (char*)malloc(strlen(OptArgv[0]+1));
             if (!szSoundRes)
                 return;
@@ -1171,7 +1264,7 @@ void ParseOptions(void)
             break;
         case 28:
             if (OptArgc < 1)
-                ThrowError(1996)("Missing argument");
+                ThrowError(1996+LDIFF5)("Missing argument");
             pUserRFF = (char*)malloc(strlen(OptArgv[0]+1));
             if (!pUserRFF)
                 return;
@@ -1179,18 +1272,18 @@ void ParseOptions(void)
             break;
         case 9:
             if (OptArgc < 1)
-                ThrowError(2008)("Missing argument");
+                ThrowError(2008+LDIFF5)("Missing argument");
             gExplicitSetup = 1;
             strcpy(SetupFilename,OptArgv[0]);
             break;
         case 10:
             if (OptArgc < 1)
-                ThrowError(2018)("Missing argument");
+                ThrowError(2018+LDIFF5)("Missing argument");
             gSkill = ClipRange(strtoul(OptArgv[0],NULL,0), 0, 4);
             break;
         case 15:
             if (OptArgc < 1)
-                ThrowError(2030)("Missing argument");
+                ThrowError(2030+LDIFF5)("Missing argument");
             gSyncRate = ClipRange(strtoul(OptArgv[0],NULL,0), 1, 4);
             if (gPacketMode == PACKETMODE_1)
                 gSyncRate = 1;
@@ -1200,7 +1293,9 @@ void ParseOptions(void)
         case -2:
             strcpy(gUserMapFilename,OptFull);
             bAddUserMap = 1;
+#if APPVER_BLOODREV >= AV_BR_BL111
             bNoDemo = 1;
+#endif
             break;
         case 11:
             bNoCDAudio = 1;
@@ -1224,7 +1319,7 @@ void main(void)
 {
     CheckIfWindows();
     if (_grow_handles(40) < 40)
-        ThrowError(2089)("Not enough file handles available.\nIncrease FILES=## value in CONFIG.SYS.");
+        ThrowError(2089+LDIFF6)("Not enough file handles available.\nIncrease FILES=## value in CONFIG.SYS.");
     memcpy(&gGameOptions, &gSingleGameOptions, sizeof(GAMEOPTIONS));
     ParseOptions();
     func_26988();
@@ -1261,10 +1356,17 @@ void main(void)
 
     sprintf(buffer, "%ld MB Memory Used", allocMemory >> 20);
     tioPrint(buffer);
-    if (allocMemory < 0x17f8680)
+#if APPVER_BLOODREV >= AV_BR_BL120
+#define MINMEMORY 0x17f8680
+#define MINMEMORYMB 23
+#else
+#define MINMEMORY 0xe6f000
+#define MINMEMORYMB 14
+#endif
+    if (allocMemory < MINMEMORY)
     {
         tioPrint("");
-        sprintf(buffer, "LOW MEMORY WARNING: Blood requires %dmb of free memory", 23);
+        sprintf(buffer, "LOW MEMORY WARNING: Blood requires %dmb of free memory", MINMEMORYMB);
         tioPrint(buffer);
         tioPrint("You may experience problems when running Blood with low memory");
         if (gInWindows && int_28E3D4 != 1)
@@ -1282,18 +1384,23 @@ void main(void)
     tioPrint("Creating standard color lookups");
     scrCreateStdColors();
     tioPrint("Loading tiles");
+#ifdef SHAREWARE
+    if (!tileInit(0,"SHARE%03i.ART"))
+        ThrowError(2233+LDIFF3)("SHARE###.ART files not found");
+#else
     if (pUserTiles)
     {
         strcpy(buffer,pUserTiles);
         strcat(buffer,"%03i.ART");
         if (!tileInit(0,buffer))
-            ThrowError(2243)("User specified ART files not found");
+            ThrowError(2243+LDIFF3)("User specified ART files not found");
     }
     else
     {
         if (!tileInit(0,NULL))
-            ThrowError(2248)("TILES###.ART files not found");
+            ThrowError(2248+LDIFF3)("TILES###.ART files not found");
     }
+#endif
     powerupInit();
     tioPrint("Loading cosine table");
     trigInit(gSysRes);
@@ -1316,6 +1423,9 @@ void main(void)
     LockClockStrobe();
     timerRegisterClient(ClockStrobe, 120);
     timerInstall();
+#if defined(SHAREWARE) && !defined(SWRETAIL)
+    bNoCDAudio = 1;
+#endif
     int_148E14 = -1;
     if (Redbook.cdrom_setup() == 0 || !Redbook.cdrom_installed() || bNoCDAudio || gGameOptions.nGameType != GAMETYPE_0)
     {
@@ -1371,11 +1481,15 @@ void main(void)
     gWeather.Initialize((char*)frameplace, windowx1, windowy1, windowx2 - windowx1 + 1, windowy2 - windowy1 + 1, gYLookup, 0, 32, -1);
     gChoke.func_83ff0(518, func_84230);
     levelLoadDefaults();
+#ifdef SHAREWARE
+    bAddUserMap = 0;
+#else
     if (bAddUserMap)
     {
         levelAddUserMap(gUserMapFilename);
         gStartNewGame = 1;
     }
+#endif
     SetupMenus();
 _RESTART:
     setview(0,0,xdim-1,ydim-1);
@@ -1401,14 +1515,14 @@ _RESTARTNOLOGO:
     if (!bAddUserMap && !char_148EEB && !gGameStarted)
         gGameMenuMgr.Push(&menuMain);
     else if (char_148EEB)
-        func_1EC78(2518,"Starting Game","Auto-Starting Network Game",0);
+        func_1EC78(BACKTILE,"Starting Game","Auto-Starting Network Game",0);
     ready2send = 1;
     if (char_148EED)
         func_86910();
     else if (char_148EEC || char_148EEB)
     {
         func_10324();
-        func_1EC78(2518,"Starting Game","Auto-Starting Network Game",0);
+        func_1EC78(BACKTILE,"Starting Game","Auto-Starting Network Game",0);
     }
     while (!gQuitGame && !gTenQuit)
     {
@@ -1459,7 +1573,7 @@ _RESTARTNOLOGO:
         else
         {
             clearview(0);
-            rotatesprite(160<<16,100<<16,65536,0,2518,0,0,0x4a,0,0,xdim-1,ydim-1);
+            rotatesprite(160<<16,100<<16,65536,0,BACKTILE,0,0,0x4a,0,0,xdim-1,ydim-1);
             netGetPackets();
             if (gQuitRequest && !gQuitGame)
                 netBroadcastMyLogoff();
@@ -1521,6 +1635,40 @@ _RESTARTNOLOGO:
         netSendEmptyPackets();
         uninitmultiplayers();
     }
+#ifdef SHAREWARE
+    if (!gTenQuit && !char_148E29)
+    {
+        setview(0, 0, xdim - 1, ydim - 1);
+        clearview(0);
+        rotatesprite(160<<16,100<<16,65536,0,2044,0,0,10,0,0,xdim-1,ydim-1);
+        scrNextPage();
+
+        int t = gGameClock + 600;
+        while (t > gGameClock)
+        {
+            if (keyGet() != 0)
+                break;
+        }
+        clearview(0);
+        rotatesprite(160<<16,100<<16,65536,0,2592,0,0,10,0,0,xdim-1,ydim-1);
+        scrNextPage();
+        t = gGameClock + 600;
+        while (t > gGameClock)
+        {
+            if (keyGet() != 0)
+                break;
+        }
+        clearview(0);
+        rotatesprite(160<<16,100<<16,65536,0,2593,0,0,10,0,0,xdim-1,ydim-1);
+        scrNextPage();
+        t = gGameClock + 600;
+        while (t > gGameClock)
+        {
+            if (keyGet() != 0)
+                break;
+        }
+    }
+#endif
     setvmode(gOldDisplayMode);
     sndTerm();
     timerRemove();
@@ -1541,10 +1689,12 @@ _RESTARTNOLOGO:
         Redbook.cdrom_shutdown();
     }
     errSetHandler(prevErrorHandler);
+#ifdef REGISTERED
     if (int_148E0C)
         system(int_148E0C);
     else if (int_148E10)
         system(int_148E10);
+#endif
     if (char_27B2CC && !gTenQuit && !char_148E29)
         printf("Blood exited the network game because the master computer quit.\n");
 }

@@ -17,6 +17,7 @@
 #include <string.h>
 #include <stdio.h>
 #include "typedefs.h"
+#include "globals.h"
 #include "actor.h"
 #include "callback.h"
 #include "control.h"
@@ -34,10 +35,26 @@
 #include "network.h"
 #include "player.h"
 #include "view.h"
+#include "gui.h"
+
+#if APPVER_BLOODREV >= AV_BR_BL120
+#define LDIFF2 0
+#define LDIFF1 0
+#elif APPVER_BLOODREV >= AV_BR_BL111A
+#define LDIFF2 0
+#define LDIFF1 -53
+#elif APPVER_BLOODREV >= AV_BR_BL111
+#define LDIFF2 -12
+#define LDIFF1 -66
+#else
+#define LDIFF2 -43
+#define LDIFF1 -98
+#endif
 
 CPlayerMsg gPlayerMsg;
 CCheatMgr gCheatMgr;
 
+#if APPVER_BLOODREV >= AV_BR_BL111
 void func_5A928(void)
 {
     for (int i = 0; i < NUMGAMEFUNCTIONS; i++)
@@ -54,6 +71,7 @@ void func_5A944(byte key)
             CONTROL_ClearButton(i);
     }
 }
+#endif
 
 static void SetGodMode(BOOL god)
 {
@@ -94,7 +112,17 @@ static void SetAmmo(BOOL stat)
     if (stat)
     {
         for (int i = 0; i < 12; i++)
+        {
             gMe->at181[i] = gAmmoInfo[i].at0;
+#ifdef SHAREWARE
+            gMe->at181[10] = 0;
+            gMe->at181[11] = 0;
+            gMe->at181[6] = 0;
+            gMe->at181[9] = 0;
+            gMe->at181[7] = 0;
+            gMe->at181[8] = 0;
+#endif
+        }
         viewSetMessage("You have full ammo.");
     }
     else
@@ -111,6 +139,15 @@ static void SetWeapons(BOOL stat)
     {
         gMe->atcb[i] = stat;
     }
+#ifdef SHAREWARE
+    gMe->atcb[7] = 0;
+    gMe->atcb[8] = 0;
+    gMe->atcb[9] = 0;
+    gMe->atcb[10] = 0;
+    gMe->atcb[11] = 0;
+    gMe->atcb[12] = 0;
+    gMe->atcb[13] = 0;
+#endif
     SetAmmo(stat);
     if (stat)
         viewSetMessage("You have all weapons.");
@@ -254,6 +291,8 @@ void ToggleDelirium(void)
 }
 
 void StartLevel(GAMEOPTIONS *gameOptions);
+
+#if APPVER_BLOODREV >= AV_BR_BL120
 void LevelWarp(int nEpisode, int nLevel)
 {
     levelSetupOptions(nEpisode, nLevel);
@@ -272,6 +311,64 @@ void LevelWarpAndRecord(int nEpisode, int nLevel)
     StartLevel(&gGameOptions);
     viewResizeView(gViewSize);
 }
+#else
+void LevelWarp(void)
+{
+    char s[64];
+    sprintf(s, "Episode (1..%d)=", gEpisodeCount);
+
+    int nEpisode = GetNumberBox(s, gGameOptions.nEpisode + 1, 1);
+    if (nEpisode == 0)
+    {
+        viewResizeView(gViewSize);
+        return;
+    }
+    nEpisode = ClipRange(nEpisode - 1, 0, gEpisodeCount - 1);
+    int nLevels = gEpisodeInfo[nEpisode].nLevels;
+    sprintf(s, "Map (1..%d)=", nLevels);
+    int nLevel = GetNumberBox(s, gGameOptions.nLevel + 1, 1);
+    if (nLevel == 0)
+    {
+        viewResizeView(gViewSize);
+        return;
+    }
+    nLevel = ClipRange(nLevel - 1, 0, nLevels - 1);
+    levelSetupOptions(nEpisode, nLevel);
+    StartLevel(&gGameOptions);
+    viewResizeView(gViewSize);
+}
+
+void LevelWarpAndRecord(void)
+{
+    char s[64];
+    char buffer[144];
+    sprintf(s, "Episode (1..%d)=", gEpisodeCount);
+
+    int nEpisode = GetNumberBox(s, gGameOptions.nEpisode + 1, 1);
+    if (nEpisode == 0)
+    {
+        viewResizeView(gViewSize);
+        return;
+    }
+    nEpisode = ClipRange(nEpisode - 1, 0, gEpisodeCount - 1);
+    int nLevels = gEpisodeInfo[nEpisode].nLevels;
+    sprintf(s, "Map (1..%d)=", nLevels);
+    int nLevel = GetNumberBox(s, gGameOptions.nLevel + 1, 1);
+    if (nLevel == 0)
+    {
+        viewResizeView(gViewSize);
+        return;
+    }
+    nLevel = ClipRange(nLevel - 1, 0, nLevels - 1);
+    levelSetupOptions(nEpisode, nLevel);
+    gGameStarted = FALSE;
+    strcpy(buffer, levelGetFilename(nEpisode, nLevel));
+    ChangeExtension(buffer, ".DEM");
+    gDemo.Create(buffer);
+    StartLevel(&gGameOptions);
+    viewResizeView(gViewSize);
+}
+#endif
 
 CGameMessageMgr::CGameMessageMgr()
 {
@@ -326,9 +423,15 @@ void CGameMessageMgr::Display(void)
         int v10 = at22;
         int v18 = at26;
         int vc = ClipHigh(v10*8, 48);
+#if APPVER_BLOODREV >= AV_BR_BL111A
         int v14 = gViewMode == 3 ? gViewX0S : 0;
         int v8 = (gViewMode == 3 ? at5 : 0) + at9;
-        for (int i = 0; i < v10; i++)
+        int i;
+#else
+        int i;
+        int v8 = at5 + at9;
+#endif
+        for (i = 0; i < v10; i++)
         {
             messageStruct *pMessage = &at2e[(v18+i)%16];
             if (gFrameClock >= pMessage->at0)
@@ -337,6 +440,7 @@ void CGameMessageMgr::Display(void)
                 at22--;
                 continue;
             }
+#if APPVER_BLOODREV >= AV_BR_BL111A
             viewDrawText(at11, pMessage->at4, v14+1, v8, vc, 0);
             if (gViewMode == 3)
             {
@@ -345,6 +449,9 @@ void CGameMessageMgr::Display(void)
                 if (v14+height > gViewX1S)
                     viewUpdatePages();
             }
+#else
+            viewDrawText(at11, pMessage->at4, windowx1+1, v8, vc, 0);
+#endif
             v8 += at15;
             vc = ClipLow(vc-64/v10, -128);
         }
@@ -368,15 +475,34 @@ void CGameMessageMgr::SetMaxMessages(int nMessages)
 
 void CGameMessageMgr::SetFont(int nFont)
 {
+#if APPVER_BLOODREV >= AV_BR_BL120
     FONT *pFont = &gFont[nFont];
     at11 = nFont;
     at15 = pFont->ySize;
+#else
+    if (nFont < 0)
+        return;
+
+    DICTNODE *hFont = gSysRes.Lookup(at11, "QFN");
+    dassert(hFont != NULL, 626+LDIFF2);
+
+    QFONT *pFont = (QFONT*)gSysRes.Lock(hFont);
+    dassert(pFont != NULL, 629+LDIFF2);
+    at11 = nFont;
+    at15 = pFont->at13;
+    gSysRes.Unlock(hFont);
+#endif
 }
 
 void CGameMessageMgr::SetCoordinates(int x, int y)
 {
+#if APPVER_BLOODREV >= AV_BR_BL111A
     at1 = ClipRange(x, 0, gViewX1S);
     at5 = ClipRange(y, 0, gViewY1S);
+#else
+    at1 = ClipRange(x, 0, windowx2);
+    at5 = ClipRange(y, 0, windowy2);
+#endif
 }
 
 void CGameMessageMgr::SetMessageTime(int nTime)
@@ -407,12 +533,19 @@ void CPlayerMsg::Draw(void)
     strcpy(buffer, at4);
     if (gGameClock & 16)
         strcat(buffer, "_");
+#if APPVER_BLOODREV >= AV_BR_BL111A
     int x = gViewMode == 3 ? gViewX0S : 0;
     int y = gViewMode == 3 ? gViewY0S : 0;
     if (gViewSize >= 1)
         y += tilesizy[2229]*((gNetPlayers+3)/4);
     viewDrawText(0, buffer, x+1,y+1, -128, 0);
     viewUpdatePages();
+#else
+    int y = windowy1+1;
+    if (gViewSize >= 1)
+        y += tilesizy[2229]*((gNetPlayers+3)/4);
+    viewDrawText(0, buffer, windowx1+1,y, -128, 0);
+#endif
 }
 
 BOOL CPlayerMsg::AddChar(char ch)
@@ -497,12 +630,21 @@ void CPlayerMsg::ProcessKeys(void)
                 break;
             }
         }
+#if APPVER_BLOODREV >= AV_BR_BL111
         func_5A944(key);
+#endif
     }
 }
 
 const unsigned long CCheatMgr::kCheatFlagsNone = 0;
+#if APPVER_BLOODREV >= AV_BR_BL120
 const unsigned long CCheatMgr::kCheatFlags0 = 1;
+#endif
+#if APPVER_BLOODREV >= AV_BR_BL120
+#define WARPFLAGS 1
+#else
+#define WARPFLAGS 0
+#endif
 
 CCheatMgr::CHEATINFO CCheatMgr::s_CheatInfo[] = {
     {"NQLGB", kCheat5, 0 }, // MPKFA
@@ -522,8 +664,8 @@ CCheatMgr::CHEATINFO CCheatMgr::s_CheatInfo[] = {
     {"TBUDIFM", kCheat3, 0 },
     {"TQPSL", kCheat15, 0 },
     {"POFSJOH", kCheat23, 0 },
-    {"NBSJP", kCheat28, 1 },
-    {"DBMHPO", kCheat28, 1 },
+    {"NBSJP", kCheat28, WARPFLAGS },
+    {"DBMHPO", kCheat28, WARPFLAGS },
     {"LFWPSLJBO", kCheat9, 0 },
     {"NDHFF", kCheat10, 0 },
     {"LSVFHFS", kCheat12, 0 },
@@ -540,21 +682,21 @@ CCheatMgr::CHEATINFO CCheatMgr::s_CheatInfo[] = {
     {"FWB!HBMMJ", kCheat4, 0 },
     {"SBUF", kCheat27, 0 },
     {"HPPOJFT", kCheat16, 0 },
-    {"TQJFMCFSH", kCheat36, 1 },
+    {"TQJFMCFSH", kCheat36, WARPFLAGS },
 };
 
 BOOL CCheatMgr::m_bPlayerCheated;
 
 BOOL CCheatMgr::Check(char *pzString)
 {
-    int i, j;
     char buffer[80];
     strcpy(buffer, pzString);
     strupr(buffer);
-    for (j = 0; j < strlen(pzString); j++)
-        buffer[j]++;
+    for (int i = 0; i < strlen(pzString); i++)
+        buffer[i]++;
     for (i = 0; i < 36UL; i++)
     {
+#if APPVER_BLOODREV >= AV_BR_BL120
         int nCheatLen = strlen(s_CheatInfo[i].pzString);
         if (s_CheatInfo[i].flags & kCheatFlags0)
         {
@@ -564,6 +706,7 @@ BOOL CCheatMgr::Check(char *pzString)
                 return 1;
             }
         }
+#endif
         if (strcmp(buffer, s_CheatInfo[i].pzString) == 0)
         {
             Process(s_CheatInfo[i].id);
@@ -573,6 +716,7 @@ BOOL CCheatMgr::Check(char *pzString)
     return 0;
 }
 
+#if APPVER_BLOODREV >= AV_BR_BL120
 int parseArgs(char *pzArgs, int *nArg1, int *nArg2)
 {
     if (!nArg1 || !nArg2)
@@ -588,10 +732,15 @@ int parseArgs(char *pzArgs, int *nArg1, int *nArg2)
     *nArg2 = ClipRange(*nArg2-1, 0, nLevels-1);
     return stat;
 }
+#endif
 
+#if APPVER_BLOODREV >= AV_BR_BL120
 void CCheatMgr::Process(CCheatMgr::CHEATCODE nCheatCode, char *pzArgs)
+#else
+void CCheatMgr::Process(CCheatMgr::CHEATCODE nCheatCode)
+#endif
 {
-    dassert(nCheatCode > kCheatNone && nCheatCode < kCheatMax, 886);
+    dassert(nCheatCode > kCheatNone && nCheatCode < kCheatMax, 886+LDIFF1);
 
     if (gDemo.RecordStatus()) return;
     if (nCheatCode == kCheat27)
@@ -605,9 +754,13 @@ void CCheatMgr::Process(CCheatMgr::CHEATCODE nCheatCode, char *pzArgs)
     {
     case kCheat36:
     {
+#if APPVER_BLOODREV >= AV_BR_BL120
         int nEpisode, nLevel;
         if (parseArgs(pzArgs, &nEpisode, &nLevel) == 2)
             LevelWarpAndRecord(nEpisode, nLevel);
+#else
+        LevelWarpAndRecord();
+#endif
         break;
     }
     case kCheat1:
@@ -704,9 +857,13 @@ void CCheatMgr::Process(CCheatMgr::CHEATCODE nCheatCode, char *pzArgs)
         break;
     case kCheat28:
     {
+#if APPVER_BLOODREV >= AV_BR_BL120
         int nEpisode, nLevel;
         if (parseArgs(pzArgs, &nEpisode, &nLevel) == 2)
             LevelWarp(nEpisode, nLevel);
+#else
+        LevelWarp();
+#endif
         break;
     }
     case kCheat29:

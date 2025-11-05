@@ -34,6 +34,12 @@
 #include "screen.h"
 #include "tile.h"
 
+#if APPVER_BLOODREV >= AV_BR_BL120
+#define LDIFF1 0
+#else
+#define LDIFF1 -2
+#endif
+
 extern "C" void loadvoxel(int nVoxel)
 {
     static int nLastVoxel = 0;
@@ -142,8 +148,8 @@ int tileInit(BOOL a1, char *a2)
         if (a1)
         {
             if (artversion != 69)
-                ThrowError(213)("Invalid .ART files\n");
-            dassert(artversion == 69, 214);
+                ThrowError(213+LDIFF1)("Invalid .ART files\n");
+            dassert(artversion == 69, 214+LDIFF1);
         }
         read(hFile, &numtiles, 4);
         read(hFile, &tileStart[v8], 4);
@@ -272,7 +278,7 @@ void tileSaveArtInfo(void)
         if (!tileFileDirty[i])
             continue;
         hFile = hTileFile[i];
-        dassert(hFile != -1, 360);
+        dassert(hFile != -1, 360+LDIFF1);
         lseek(hFile, 0, SEEK_SET);
         write(hFile, &artversion, 4);
         write(hFile, &numtiles, 4);
@@ -344,7 +350,7 @@ void tilePurgeTile(int nTile)
     if (node->ptr)
     {
         Resource::Flush(node);
-        dassert(node->ptr == NULL, 442);
+        dassert(node->ptr == NULL, 442+LDIFF1);
     }
 }
 
@@ -366,7 +372,7 @@ byte *tileLoadTile(int nTile)
     if (tileNode[nLastTile].lockCount == 0)
         waloff[nLastTile] = 0;
     nLastTile = nTile;
-    dassert(nTile >= 0 && nTile < kMaxTiles, 472);
+    dassert(nTile >= 0 && nTile < kMaxTiles, 472+LDIFF1);
     CACHENODE *node = &tileNode[nTile];
     if (node->ptr)
     {
@@ -383,7 +389,7 @@ byte *tileLoadTile(int nTile)
     if (nSize <= 0)
         return NULL;
     gCacheMiss = gGameClock + 30;
-    dassert(node->lockCount == 0, 508);
+    dassert(node->lockCount == 0, 508+LDIFF1);
     node->ptr = Resource::Alloc(nSize);
     waloff[nTile] = (byte*)node->ptr;
     Resource::AddMRU(node);
@@ -395,7 +401,7 @@ byte *tileLoadTile(int nTile)
 
 byte *tileLockTile(int nTile)
 {
-    dassert(nTile >= 0 && nTile < kMaxTiles, 524);
+    dassert(nTile >= 0 && nTile < kMaxTiles, 524+LDIFF1);
     if (!tileLoadTile(nTile))
         return NULL;
     CACHENODE *node = &tileNode[nTile];
@@ -408,7 +414,7 @@ byte *tileLockTile(int nTile)
 
 void tileUnlockTile(int nTile)
 {
-    dassert(nTile >= 0 && nTile < kMaxTiles, 540);
+    dassert(nTile >= 0 && nTile < kMaxTiles, 540+LDIFF1);
     waloff[nTile] = 0;
     CACHENODE *node = &tileNode[nTile];
     if (node->lockCount > 0)
@@ -422,12 +428,12 @@ void tileUnlockTile(int nTile)
 
 byte *tileAllocTile(int nTile, int x, int y, int ox, int oy)
 {
-    dassert(nTile >= 0 && nTile < kMaxTiles, 559);
+    dassert(nTile >= 0 && nTile < kMaxTiles, 559+LDIFF1);
     if (x <= 0 || y <= 0 || nTile >= kMaxTiles)
         return NULL;
     int nSize = x * y;
     byte *p = (byte*)Resource::Alloc(nSize);
-    dassert(p != NULL, 567);
+    dassert(p != NULL, 567+LDIFF1);
     tileNode[nTile].lockCount++;
     tileNode[nTile].ptr = p;
     waloff[nTile] = p;
@@ -447,7 +453,7 @@ byte *tileAllocTile(int nTile, int x, int y, int ox, int oy)
 
 void tileFreeTile(int nTile)
 {
-    dassert(nTile >= 0 && nTile < kMaxTiles, 591);
+    dassert(nTile >= 0 && nTile < kMaxTiles, 591+LDIFF1);
     tilePurgeTile(nTile);
 
     waloff[nTile] = NULL;

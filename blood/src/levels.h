@@ -21,6 +21,12 @@
 
 #include "weather.h"
 
+#ifdef PLASMAPAK
+#define kMaxEpisodes 6
+#else
+#define kMaxEpisodes 5
+#endif
+
 enum GAMETYPE
 {
     GAMETYPE_0 = 0,
@@ -130,8 +136,10 @@ struct EPISODEINFO
     char at8f98[144];
     int at9028;
     int at902c;
+#ifdef REGISTERED
     char at9030[144];
     char at90c0[144];
+#endif
 };
 
 extern EPISODEINFO gEpisodeInfo[];

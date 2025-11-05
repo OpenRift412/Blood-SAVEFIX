@@ -22,7 +22,9 @@
 #include "config.h"
 #include "controls.h"
 #include "misc.h"
+#include "gfx.h"
 
+#if APPVER_BLOODREV >= AV_BR_BL120
 struct FONT {
     int tile;
     int xSize;
@@ -31,13 +33,21 @@ struct FONT {
 };
 
 extern FONT gFont[];
+#endif
 
 extern int gViewMode;
 extern int gZoom;
+#if APPVER_BLOODREV >= AV_BR_BL111A
 extern int gViewX0S;
 extern int gViewX1S;
 extern int gViewY0S;
 extern int gViewY1S;
+#else
+extern int gViewX0;
+extern int gViewX1;
+extern int gViewY0;
+extern int gViewY1;
+#endif
 extern int gViewIndex;
 
 extern int gShowFrameRate;
@@ -107,13 +117,24 @@ inline void viewInterpolateSector(int nSector, SECTOR *pSector)
     }
 }
 
+#ifdef PLASMAPAK
+#define BACKTILE 2518
+#else
+#define BACKTILE 2046
+#endif
+
 void func_1EC78(int, char *, char *, char *);
 void viewResizeView(int);
 void viewToggle(int);
 void viewSetMessage(char *);
 void viewDrawText(int, char *, int, int, int, int, int position = 0, BOOL shadow = 0);
+#if APPVER_BLOODREV >= AV_BR_BL120
 void viewGetFontInfo(int nFont, char *pString, int *pXSize, int *pYSize);
+#endif
+void viewDrawChar(QFONT *pFont, char chr, int x, int y, byte *pLookup);
+#if APPVER_BLOODREV >= AV_BR_BL111A
 void viewUpdatePages(void);
+#endif
 void viewDrawSprite(long,long,long,int,int,schar,byte,ushort,long,long,long,long);
 void viewInit(void);
 void viewBackupView(int);

@@ -17,6 +17,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "typedefs.h"
+#include "globals.h"
 #include "types.h"
 #include "config.h"
 #include "controls.h"
@@ -31,6 +32,12 @@
 #include "view.h"
 
 INPUT gInput;
+
+#if APPVER_BLOODREV < AV_BR_BL111
+BOOL gMouseAimDynamic;
+BOOL gMouseAimCenter;
+BOOL gMouseAim;
+#endif
 
 BOOL bSilentAim;
 
@@ -473,10 +480,18 @@ class ControlsLoadSave : public LoadSave
 
 void ControlsLoadSave::Load(void)
 {
+#if APPVER_BLOODREV < AV_BR_BL111
+    Read(&gMouseAimDynamic, 1);
+    Read(&gMouseAimCenter, 1);
+#endif
 }
 
 void ControlsLoadSave::Save(void)
 {
+#if APPVER_BLOODREV < AV_BR_BL111
+    Write(&gMouseAimDynamic, 1);
+    Write(&gMouseAimCenter, 1);
+#endif
 }
 
 static ControlsLoadSave myLoadSave;

@@ -2,8 +2,8 @@ SRC_DIR = src
 OBJ_DIR = obj
 
 #CPPFLAGS = /5r /d3 /i=..\qtools\include;..\helix32;..\audiolib;..\mact;..\smacker
-CPPFLAGS = /5r /d1 /s /orti /oe=3 /i=..\qtools\include;..\helix32;..\audiolib;..\mact;..\smacker
-TENFLAGS = /4r /d1 /s /orti /oe=3 /i=..\qtools\include;..\audiolib;..\mact;..\ten\incl
+CPPFLAGS = /5r /d1 /s /orti /oe=3 /dAPPVER_EXEDEF=$(appver_exedef)
+TENFLAGS = /4r /d1 /s /orti /oe=3
 CFLAGS = /5r /d2 /orti
 AFLAGS = -ml
 
@@ -11,7 +11,7 @@ AFLAGS = -ml
 .cpp: $(SRC_DIR)
 .c: $(SRC_DIR)
 .asm: $(SRC_DIR)
-.obj: $(OBJ_DIR)
+.obj: $(appver_exedef)\$(OBJ_DIR)
 
 OBJS = &
 globals.obj &
@@ -88,42 +88,44 @@ heat3.obj &
 engage.obj &
 choke.obj
 
-all : blood.exe .symbolic
+all : $(appver_exedef)\blood.exe .symbolic
 	@%null
 
-blood.exe: $(OBJS) tenblood.obj
-	%make blood.lnk
+$(appver_exedef)\blood.exe: $(OBJS) tenblood.obj
+	%make $(appver_exedef)\blood.lnk
+	cd $(appver_exedef)
 	wlink @blood.lnk
+	cd ..
 
-blood.lnk: makefile
+$(appver_exedef)\blood.lnk: makefile
 	%create $^@
 	%append $^@ opt map
 	%append $^@ opt stack=8192
 	%append $^@ opt static
 	%append $^@ debug all
 	%append $^@ name blood
-	%append $^@ library ..\qtools\qtools.lib
-	%append $^@ library ..\helix32\helix.lib
-	%append $^@ library ..\build\engine.lib
-	%append $^@ library ..\mact\mact386.lib
-	%append $^@ library ..\audiolib\audio_wf.lib
-	%append $^@ library ..\smacker\smack.lib
-	%append $^@ library ..\ten\lib\sdkboxr.lib
+	%append $^@ library ..\..\qtools\$(appver_qtools)\qtools.lib
+	%append $^@ library ..\..\helix32\helix.lib
+	%append $^@ library ..\..\build\engine.lib
+	%append $^@ library ..\..\mact\mact386.lib
+	%append $^@ library ..\..\audiolib\audio_wf.lib
+	%append $^@ library ..\..\smacker\smack.lib
+	%append $^@ library ..\..\ten\lib\sdkboxr.lib
     for %i in ($(OBJS)) do %append $^@ file $(OBJ_DIR)\%i
-	%append $^@ file ..\helix32\hgd13.obj
-	%append $^@ file ..\helix32\hgdx.obj
-	%append $^@ file ..\build\mmulti.obj
+	%append $^@ file ..\..\helix32\hgd13.obj
+	%append $^@ file ..\..\helix32\hgdx.obj
+	%append $^@ file ..\..\build\mmulti.obj
 	%append $^@ file $(OBJ_DIR)\tenblood.obj
 
 
 .cpp.obj:
-    wpp386 $(CPPFLAGS) $[* /fo=$(OBJ_DIR)\$^&
+    wpp386 $(CPPFLAGS) $[* /fo=$(appver_exedef)\$(OBJ_DIR)\$^&
 
 .c.obj:
-    wcc386 $(CFLAGS) $[* /fo=$(OBJ_DIR)\$^&
+    wcc386 $(CFLAGS) $[* /fo=$(appver_exedef)\$(OBJ_DIR)\$^&
 
 .asm.obj:
-    tasm $(AFLAGS) $[*.asm $(OBJ_DIR)\$^&
+    tasm $(AFLAGS) $[*.asm $(appver_exedef)\$(OBJ_DIR)\$^&
 
 tenblood.obj: $(SRC_DIR)\tenblood.cpp
-    wpp386 $(TENFLAGS) $(SRC_DIR)\tenblood /fo=$(OBJ_DIR)\tenblood.obj
+    wpp386 $(TENFLAGS) $(SRC_DIR)\tenblood /fo=$(appver_exedef)\$(OBJ_DIR)\tenblood.obj

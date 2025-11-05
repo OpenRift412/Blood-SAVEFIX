@@ -51,10 +51,67 @@ char gVersionStringBuf[16];
 
 //char gBuildDate[] = __DATE__;
 //char gBuildTime[] = __TIME__;
+#if APPVER_BLOODREV >= AV_BR_BL121
 char gBuildDate[] = "Jul 15 1998";
 char gBuildTime[] = "14:37:44";
-
 const BLOODVERSION gGameVersion = { 21, 1 };
+#elif APPVER_BLOODREV >= AV_BR_BL120
+char gBuildDate[] = "Mar 18 1998";
+# ifdef PLASMAPAK
+char gBuildTime[] = "12:16:41";
+# else
+char gBuildTime[] = "12:07:19";
+# endif
+const BLOODVERSION gGameVersion = { 20, 1 };
+#elif APPVER_BLOODREV >= AV_BR_BL111A
+char gBuildDate[] = "Sep 23 1997";
+# ifdef REGISTERED
+#  ifdef PLASMAPAK
+char gBuildTime[] = "13:23:56";
+#  else
+char gBuildTime[] = "13:20:08";
+#  endif
+# else
+#  ifdef SWRETAIL
+char gBuildTime[] = "13:17:24";
+#  else
+char gBuildTime[] = "13:14:36";
+#  endif
+# endif
+const BLOODVERSION gGameVersion = { 11, 1 };
+#elif APPVER_BLOODREV >= AV_BR_BL111
+char gBuildDate[] = "Aug 19 1997";
+# ifdef REGISTERED
+#  ifdef PLASMAPAK
+char gBuildTime[] = "11:42:52";
+#  else
+char gBuildTime[] = "11:39:05";
+#  endif
+# else
+#  ifdef SWRETAIL
+char gBuildTime[] = "11:36:21";
+#  else
+char gBuildTime[] = "11:33:31";
+#  endif
+# endif
+const BLOODVERSION gGameVersion = { 11, 1 };
+#else
+char gBuildDate[] = "Aug 12 1997";
+# ifdef REGISTERED
+#  ifdef PLASMAPAK
+char gBuildTime[] = "16:01:44";
+#  else
+char gBuildTime[] = "15:57:55";
+#  endif
+# else
+#  ifdef SWRETAIL
+char gBuildTime[] = "15:55:11";
+#  else
+char gBuildTime[] = "15:52:20";
+#  endif
+# endif
+const BLOODVERSION gGameVersion = { 10, 1 };
+#endif
 
 BOOL gAdultContent = 1;
 

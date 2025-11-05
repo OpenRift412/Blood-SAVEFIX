@@ -24,4 +24,6 @@ void __dassert(char*, char*, int);
 //#define dassert(x) if (!(x)) __dassert(#x,__FILE__,__LINE__)
 #define dassert(x, line) if (!(x)) __dassert(#x,__FILE__,line)
 
+int dprintf(char*, ...);
+
 #endif

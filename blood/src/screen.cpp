@@ -16,6 +16,7 @@
  */
 #include <string.h>
 #include "typedefs.h"
+#include "globals.h"
 #include "build.h"
 #include "debug4g.h"
 #include "error.h"
@@ -26,6 +27,14 @@
 #include "resource.h"
 #include "screen.h"
 #include "textio.h"
+
+#if APPVER_BLOODREV >= AV_BR_BL120
+#define LDIFF1 0
+#define LDIFF2 0
+#else
+#define LDIFF1 -4
+#define LDIFF2 -24
+#endif
 
 BOOL DacInvalid = TRUE;
 
@@ -147,7 +156,7 @@ void scrLoadPLUs(void)
     {
         DICTNODE *pFog = gSysRes.Lookup("FOG", "FLU");
         if (!pFog)
-            ThrowError(182)("FOG.FLU not found");
+            ThrowError(182+LDIFF1)("FOG.FLU not found");
         palookup[0] = (byte*)gSysRes.Lock(pFog);
         for (i = 0; i < 15; i++)
             palookup[PLU[i].id] = palookup[0];
@@ -158,9 +167,9 @@ void scrLoadPLUs(void)
     {
         DICTNODE *pPlu = gSysRes.Lookup(PLU[i].name,"PLU");
         if (!pPlu)
-            ThrowError(200)("%s.PLU not found", PLU[i].name);
+            ThrowError(200+LDIFF1)("%s.PLU not found", PLU[i].name);
         if (Resource::Size(pPlu) / 256 != 64)
-            ThrowError(203)("Incorrect PLU size");
+            ThrowError(203+LDIFF1)("Incorrect PLU size");
         palookup[PLU[i].id] = (byte*)gSysRes.Lock(pPlu);
     }
 }
@@ -173,7 +182,7 @@ void scrLoadPalette(void)
     {
         DICTNODE *pPal = gSysRes.Lookup(PAL[i].name, "PAL");
         if (!pPal)
-            ThrowError(220)("%s.PAL not found (RFF files may be wrong version)", PAL[i].name);
+            ThrowError(220+LDIFF1)("%s.PAL not found (RFF files may be wrong version)", PAL[i].name);
         palTable[PAL[i].id] = (RGB*)gSysRes.Lock(pPal);
     }
     memcpy(palette, palTable[0], sizeof(palette));
@@ -183,7 +192,7 @@ void scrLoadPalette(void)
     tioPrint("Loading translucency table");
     DICTNODE *pTrans = gSysRes.Lookup("TRANS", "TLU");
     if (!pTrans)
-        ThrowError(238)("TRANS.TLU not found");
+        ThrowError(238+LDIFF1)("TRANS.TLU not found");
     transluc = (byte*)gSysRes.Lock(pTrans);
     fixtransluscence();
 }
@@ -208,7 +217,7 @@ void scrSetPalette(int palId)
 
 void scrSetGamma(int nGamma)
 {
-    dassert(nGamma < gGammaLevels, 270);
+    dassert(nGamma < gGammaLevels, 270+LDIFF1);
     curGamma = nGamma;
     for (int i = 0; i < 256; i++)
     {
@@ -261,7 +270,7 @@ void scrInit(void)
     tioPrint("Loading gamma correction table");
     DICTNODE *pGamma = gSysRes.Lookup("gamma", "DAT");
     if (!pGamma)
-        ThrowError(374)("Gamma table not found");
+        ThrowError(374+LDIFF2)("Gamma table not found");
     gGammaLevels = Resource::Size(pGamma) / 256;
     gammaTable = (unsigned char(*)[256])gSysRes.Lock(pGamma);
 }
@@ -272,20 +281,20 @@ void scrSetGameMode(int vidMode, int XRes, int YRes)
     {
         vidMode = 2;
         if (setgamemode(vidMode, XRes, YRes) == -1)
-            ThrowError(397)("Standard video mode failed.");
+            ThrowError(397+LDIFF2)("Standard video mode failed.");
     }
     if (vidMode == 6 && (XRes != 320 || YRes != 200))
-        ThrowError(401)("Specified video mode doesn't support %dx%d resolution!", XRes, YRes);
+        ThrowError(401+LDIFF2)("Specified video mode doesn't support %dx%d resolution!", XRes, YRes);
     switch (vidMode)
     {
     default:
-        ThrowError(406)("Unsupported video mode (%d) passed to scrSetGameMode.", vidMode);
+        ThrowError(406+LDIFF2)("Unsupported video mode (%d) passed to scrSetGameMode.", vidMode);
         break;
     case 1:
     case 2:
     case 6:
         if (gFindMode(320,200,256,3) == 0)
-        	ThrowError(413)("Helix driver not found");
+        	ThrowError(413+LDIFF2)("Helix driver not found");
         gPageTable[0].begin = (int)frameplace;
         gPageTable[0].bytesPerRow = xdim;
         gPageTable[0].size = xdim*ydim;

@@ -16,9 +16,10 @@
  */
 #include <stdlib.h>
 #include "typedefs.h"
+#include "globals.h"
+#include "debug4g.h"
 #include "build.h"
 #include "crc32.h"
-#include "globals.h"
 #include "misc.h"
 #include "resource.h"
 #include "screen.h"
@@ -48,6 +49,9 @@ extern "C" void *kmalloc(long size)
 
 extern "C" void kfree(void *pMem)
 {
+#if APPVER_BLOODREV < AV_BR_BL111
+    dprintf("kfree(%p)\n", pMem);
+#endif
     Resource::Free(pMem);
 }
 
@@ -79,21 +83,25 @@ enum {
     kFakevarMask = 0xc000,
 };
 
-extern "C" int animateoffs(short a1, ushort a2)
+extern "C" int animateoffs(short nTile, ushort a2)
 {
     int offset = 0;
     int frames;
     int vd;
-    if (a1 < 0 || a1 >= kMaxTiles)
+#if APPVER_BLOODREV >= AV_BR_BL111
+    if (nTile < 0 || nTile >= kMaxTiles)
         return offset;
-    frames = picanm[a1].animframes;
+#else
+    dassert(nTile >= 0 && nTile < kMaxTiles, 85);
+#endif
+    frames = picanm[nTile].animframes;
     if (frames > 0)
     {
         if ((a2&0xc000) == 0x8000)
-            vd = (CRC32(&a2, 2)+gFrameClock)>>picanm[a1].animspeed;
+            vd = (CRC32(&a2, 2)+gFrameClock)>>picanm[nTile].animspeed;
         else
-            vd = gFrameClock>>picanm[a1].animspeed;
-        switch (picanm[a1].animtype)
+            vd = gFrameClock>>picanm[nTile].animspeed;
+        switch (picanm[nTile].animtype)
         {
         case 1:
             offset = vd % (2*frames);

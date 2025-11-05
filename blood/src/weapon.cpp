@@ -36,6 +36,16 @@
 #include "trig.h"
 #include "weapon.h"
 
+#if APPVER_BLOODREV >= AV_BR_BL111A
+#define LDIFF1 0
+#define LDIFF2 0
+#define LDIFF3 0
+#else
+#define LDIFF1 -1
+#define LDIFF2 -6
+#define LDIFF3 -18
+#endif
+
 #define kQAVEnd 125
 
 QAV* weaponQAV[kQAVEnd];
@@ -104,9 +114,11 @@ static int nClientFireNapalm = qavRegisterClient((QAVTypeCast)FireNapalm);
 static int nClientFireNapalm2 = qavRegisterClient((QAVTypeCast)FireNapalm2);
 static int nClientFireLifeLeech = qavRegisterClient((QAVTypeCast)FireLifeLeech);
 static int nClientFireBeast = qavRegisterClient((QAVTypeCast)FireBeast);
+#ifdef PLASMAPAK
 static int nClientAltFireLifeLeech = qavRegisterClient((QAVTypeCast)AltFireLifeLeech);
 static int nClientDropVoodoo = qavRegisterClient((QAVTypeCast)DropVoodoo);
 static int nClientAltFireNapalm = qavRegisterClient((QAVTypeCast)AltFireNapalm);
+#endif
 
 void QAV::PlaySound(int nSound)
 {
@@ -198,14 +210,14 @@ void WeaponInit(void)
     {
         DICTNODE *hRes = gSysRes.Lookup(i, "QAV");
         if (!hRes)
-            ThrowError(513)("Could not load QAV %d\n", i);
+            ThrowError(513+LDIFF1)("Could not load QAV %d\n", i);
         weaponQAV[i] = (QAV*)gSysRes.Lock(hRes);
     }
 }
 
 void WeaponDraw(PLAYER *pPlayer, int a2, int a3, int a4, int a5)
 {
-    dassert(pPlayer != NULL, 529);
+    dassert(pPlayer != NULL, 529+LDIFF1);
     if (pPlayer->at26 == -1)
         return;
     QAV *pQAV = weaponQAV[pPlayer->at26];
@@ -228,7 +240,7 @@ void WeaponDraw(PLAYER *pPlayer, int a2, int a3, int a4, int a5)
 
 void WeaponPlay(PLAYER *pPlayer)
 {
-    dassert(pPlayer != NULL, 561);
+    dassert(pPlayer != NULL, 561+LDIFF1);
     if (pPlayer->at26 == -1)
         return;
     QAV *pQAV = weaponQAV[pPlayer->at26];
@@ -239,7 +251,7 @@ void WeaponPlay(PLAYER *pPlayer)
 
 static void StartQAV(PLAYER *pPlayer, int nWeaponQAV, int a3 = -1, BOOL a4 = 0)
 {
-    dassert(nWeaponQAV < kQAVEnd, 578);
+    dassert(nWeaponQAV < kQAVEnd, 578+LDIFF1);
     pPlayer->at26 = nWeaponQAV;
     pPlayer->atbf = weaponQAV[nWeaponQAV]->at10;
     pPlayer->at2a = a3;
@@ -263,6 +275,15 @@ t_WeaponModes weaponModes[] = {
     { 1, 3 },
     { 1, 4 },
     { 1, 5 },
+#ifdef SHAREWARE
+    { 0, -1 },
+    { 0, -1 },
+    { 0, -1 },
+    { 0, -1 },
+    { 0, -1 },
+    { 0, -1 },
+    { 0, -1 },
+#else
     { 1, 6 },
     { 1, 7 },
     { 1, 8 },
@@ -270,6 +291,7 @@ t_WeaponModes weaponModes[] = {
     { 1, 10 },
     { 1, 11 },
     { 0, -1 },
+#endif
 };
 
 struct WEAPONTRACK
@@ -281,8 +303,13 @@ struct WEAPONTRACK
     int at10; // predict
 };
 
+#ifdef SHAREWARE
+int OrderNext[] = { 1, 2, 3, 4, 5, 6, 1, 1, 1, 1, 1, 1, 1, 1 };
+int OrderPrev[] = { 6, 6, 1, 2, 3, 4, 5, 6, 6, 6, 6, 6, 6, 6 };
+#else
 int OrderNext[] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 1 };
 int OrderPrev[] = { 12, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 1 };
+#endif
 
 WEAPONTRACK gWeaponTrack[] = {
     { 0, 0, 0, 0, 0 },
@@ -303,7 +330,7 @@ WEAPONTRACK gWeaponTrack[] = {
 
 static void UpdateAimVector(PLAYER * pPlayer)
 {
-    dassert(pPlayer != NULL, 628);
+    dassert(pPlayer != NULL, 628+LDIFF1);
     SPRITE *pPSprite = pPlayer->pSprite;
     int x = pPSprite->x;
     int y = pPSprite->y;
@@ -430,7 +457,7 @@ static void UpdateAimVector(PLAYER * pPlayer)
 
 void WeaponRaise(PLAYER *pPlayer)
 {
-    dassert(pPlayer != 0, 825);
+    dassert(pPlayer != 0, 825+LDIFF1);
     int prevWeapon = pPlayer->atbd;
     pPlayer->atbd = pPlayer->atc.newWeapon;
     pPlayer->atc.newWeapon = 0;
@@ -529,24 +556,37 @@ void WeaponRaise(PLAYER *pPlayer)
         }
         break;
     case 2: // flaregun
-        if (powerupCheck(pPlayer, 17) && func_4B2C8(pPlayer, 1, 2))
+#if APPVER_BLOODREV < AV_BR_BL111A
+        pPlayer->atc3 = 2;
+#endif
+        if (powerupCheck(pPlayer, 17)
+#if APPVER_BLOODREV >= AV_BR_BL111A
+            && func_4B2C8(pPlayer, 1, 2)
+#endif
+            )
         {
             StartQAV(pPlayer, 45);
+#if APPVER_BLOODREV >= AV_BR_BL111A
             pPlayer->atc3 = 3;
+#endif
         }
         else
         {
             StartQAV(pPlayer, 41);
+#if APPVER_BLOODREV >= AV_BR_BL111A
             pPlayer->atc3 = 2;
+#endif
         }
         break;
     case 8: // tesla cannon
         if (func_4B2C8(pPlayer, 7))
         {
             pPlayer->atc3 = 2;
+#ifdef PLASMAPAK
             if (powerupCheck(pPlayer, 17))
                 StartQAV(pPlayer, 82);
             else
+#endif
                 StartQAV(pPlayer, 74);
         }
         else
@@ -580,10 +620,12 @@ void WeaponRaise(PLAYER *pPlayer)
 
 void WeaponLower(PLAYER *pPlayer)
 {
-    dassert(pPlayer != 0, 1009);
+    dassert(pPlayer != 0, 1009+LDIFF2);
     if (func_4B1A4(pPlayer))
         return;
+#if APPVER_BLOODREV >= AV_BR_BL111A
     pPlayer->at1ba = 0;
+#endif
     int t = pPlayer->atbd;
     int vc = pPlayer->atc3;
     switch (t)
@@ -688,10 +730,14 @@ void WeaponLower(PLAYER *pPlayer)
     case 2:
         if (powerupCheck(pPlayer, 17))
         {
+#if APPVER_BLOODREV >= AV_BR_BL111A
             if (vc == 3)
                 StartQAV(pPlayer, 49);
             else
                 StartQAV(pPlayer, 44);
+#else
+            StartQAV(pPlayer, 49);
+#endif
         }
         else
             StartQAV(pPlayer, 44);
@@ -879,8 +925,13 @@ void WeaponUpdateState(PLAYER *pPlayer)
         }
         break;
     case 2:
+#if APPVER_BLOODREV < AV_BR_BL111A
+        if (vb != 2)
+            break;
+#endif
         if (powerupCheck(pPlayer, 17))
         {
+#if APPVER_BLOODREV >= AV_BR_BL111A
             if (vb == 3 && func_4B2C8(pPlayer, 1, 2))
                 pPlayer->at26 = 46;
             else
@@ -888,6 +939,9 @@ void WeaponUpdateState(PLAYER *pPlayer)
                 pPlayer->at26 = 42;
                 pPlayer->atc3 = 2;
             }
+#else
+            pPlayer->at26 = 46;
+#endif
         }
         else
             pPlayer->at26 = 42;
@@ -902,9 +956,11 @@ void WeaponUpdateState(PLAYER *pPlayer)
         switch (vb)
         {
         case 2:
+#ifdef PLASMAPAK
             if (func_4B2C8(pPlayer, 7, 10) && powerupCheck(pPlayer, 17))
                 pPlayer->at26 = 83;
             else
+#endif
                 pPlayer->at26 = 75;
             break;
         case 3:
@@ -1083,7 +1139,7 @@ static void FireRemote(int, PLAYER *pPlayer)
 
 static void FireShotgun(int nTrigger, PLAYER *pPlayer)
 {
-    dassert(nTrigger > 0 && nTrigger <= kMaxShotgunBarrels, 1640);
+    dassert(nTrigger > 0 && nTrigger <= kMaxShotgunBarrels, 1640+LDIFF3);
     SPRITE *pSprite = pPlayer->pSprite;
     if (nTrigger == 1)
     {
@@ -1160,7 +1216,7 @@ static void FireTommy(int nTrigger, PLAYER *pPlayer)
 
 static void FireSpread(int nTrigger, PLAYER *pPlayer)
 {
-    dassert(nTrigger > 0 && nTrigger <= kMaxSpread, 1734);
+    dassert(nTrigger > 0 && nTrigger <= kMaxSpread, 1734+LDIFF3);
     VECTOR3D *aim = &pPlayer->at1be;
     int angle = (getangle(aim->dx, aim->dy)+((112*(nTrigger-1))/14-56))&2047;
     int dx = Cos(angle)>>16;
@@ -1176,7 +1232,7 @@ static void FireSpread(int nTrigger, PLAYER *pPlayer)
 
 static void AltFireSpread(int nTrigger, PLAYER *pPlayer)
 {
-    dassert(nTrigger > 0 && nTrigger <= kMaxSpread, 1760);
+    dassert(nTrigger > 0 && nTrigger <= kMaxSpread, 1760+LDIFF3);
     VECTOR3D *aim = &pPlayer->at1be;
     int angle = (getangle(aim->dx, aim->dy)+((112*(nTrigger-1))/14-56))&2047;
     int dx = Cos(angle)>>16;
@@ -1195,7 +1251,7 @@ static void AltFireSpread(int nTrigger, PLAYER *pPlayer)
 
 static void AltFireSpread2(int nTrigger, PLAYER *pPlayer)
 {
-    dassert(nTrigger > 0 && nTrigger <= kMaxSpread, 1792);
+    dassert(nTrigger > 0 && nTrigger <= kMaxSpread, 1792+LDIFF3);
     VECTOR3D *aim = &pPlayer->at1be;
     int angle = (getangle(aim->dx, aim->dy)+((112*(nTrigger-1))/14-56))&2047;
     int dx = Cos(angle)>>16;
@@ -1278,7 +1334,7 @@ static void FireVoodoo(int nTrigger, PLAYER *pPlayer)
         actDamageSprite(nSprite, pSprite, DAMAGE_TYPE_2, 1<<4);
         return;
     }
-    dassert(pPlayer->voodooTarget >= 0, 1916);
+    dassert(pPlayer->voodooTarget >= 0, 1916+LDIFF3);
     SPRITE *pTarget = &sprite[pPlayer->voodooTarget];
     switch (nTrigger)
     {
@@ -1364,6 +1420,7 @@ static void AltFireVoodoo(int nTrigger, PLAYER *pPlayer)
     pPlayer->atc3 = -1;
 }
 
+#ifdef PLASMAPAK
 static void DropVoodoo(int nTrigger, PLAYER *pPlayer)
 {
     if (nTrigger != 2)
@@ -1380,6 +1437,7 @@ static void DropVoodoo(int nTrigger, PLAYER *pPlayer)
         pPlayer->atcb[10] = 0;
     }
 }
+#endif
 
 struct TeslaMissile
 {
@@ -1465,6 +1523,7 @@ static void FireNapalm2(int nTrigger, PLAYER *pPlayer)
     pPlayer->at37b = 1;
 }
 
+#ifdef PLASMAPAK
 static void AltFireNapalm(int nTrigger, PLAYER *pPlayer)
 {
     char bAkimbo = powerupCheck(pPlayer, 17);
@@ -1484,6 +1543,7 @@ static void AltFireNapalm(int nTrigger, PLAYER *pPlayer)
         pPlayer->at37b = 1;
     }
 }
+#endif
 
 static void FireLifeLeech(int nTrigger, PLAYER *pPlayer)
 {
@@ -1497,15 +1557,27 @@ static void FireLifeLeech(int nTrigger, PLAYER *pPlayer)
     {
         XSPRITE *pXSprite = &xsprite[pMissile->extra];
         pXSprite->target = pPlayer->at1d6;
+#if APPVER_BLOODREV < AV_BR_BL111A
+        if (func_4B2C8(pPlayer, 8))
+            UseAmmo(pPlayer, 8, 1);
+        else
+            actDamageSprite(pPlayer->at5b, pPlayer->pSprite, DAMAGE_TYPE_5, 16);
+#endif
         pMissile->ang = (nTrigger==2) ? 1024 : 0;
+#if APPVER_BLOODREV < AV_BR_BL111A
+        pPlayer->at362 = ClipHigh(pPlayer->at362 + 5, 50);
+#endif
     }
+#if APPVER_BLOODREV >= AV_BR_BL111A
     if (func_4B2C8(pPlayer, 8))
         UseAmmo(pPlayer, 8, 1);
     else
         actDamageSprite(pPlayer->at5b, pPlayer->pSprite, DAMAGE_TYPE_5, 16);
     pPlayer->at362 = ClipHigh(pPlayer->at362+5, 50);
+#endif
 }
 
+#ifdef PLASMAPAK
 static void AltFireLifeLeech(int nTrigger, PLAYER *pPlayer)
 {
     sfxPlay3DSound(pPlayer->pSprite, 455, 2);
@@ -1538,6 +1610,7 @@ static void AltFireLifeLeech(int nTrigger, PLAYER *pPlayer)
         pPlayer->atcb[9] = 0;
     }
 }
+#endif
 
 static void FireBeast(int nTrigger, PLAYER * pPlayer)
 {
@@ -1551,7 +1624,11 @@ BOOL gWeaponUpgrade[][13] = {
     { 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
     { 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
     { 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0 },
+#if APPVER_BLOODREV >= AV_BR_BL111A
     { 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0 },
+#else
+    { 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0 },
+#endif
     { 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0 },
     { 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0 },
     { 0, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0 },
@@ -1785,25 +1862,31 @@ BOOL func_4F484(PLAYER *pPlayer)
     {
     case 4:
         pPlayer->atc3 = 5;
+#ifdef PLASMAPAK
         if (func_4B2C8(pPlayer, 7, 10) && powerupCheck(pPlayer, 17))
             StartQAV(pPlayer, 84, nClientFireTesla, 1);
         else
+#endif
             StartQAV(pPlayer, 77, nClientFireTesla, 1);
         return 1;
     case 5:
         if (pPlayer->atc.buttonFlags.shoot)
             break;
         pPlayer->atc3 = 2;
+#ifdef PLASMAPAK
         if (func_4B2C8(pPlayer, 7, 10) && powerupCheck(pPlayer, 17))
             StartQAV(pPlayer, 87);
         else
+#endif
             StartQAV(pPlayer, 80);
         return 1;
     case 7:
         pPlayer->atc3 = 2;
+#ifdef PLASMAPAK
         if (func_4B2C8(pPlayer, 7, 10) && powerupCheck(pPlayer, 17))
             StartQAV(pPlayer, 87);
         else
+#endif
             StartQAV(pPlayer, 80);
         return 1;
     }
@@ -1844,7 +1927,9 @@ void WeaponProcess(PLAYER *pPlayer)
             }
         }
         WeaponLower(pPlayer);
+#if APPVER_BLOODREV >= AV_BR_BL111A
         pPlayer->at1ba = 0;
+#endif
     }
     WeaponPlay(pPlayer);
     UpdateAimVector(pPlayer);
@@ -2141,7 +2226,11 @@ void WeaponProcess(PLAYER *pPlayer)
                 StartQAV(pPlayer, 66, nClientFireTommy, 1);
             return;
         case 2:
-            if (powerupCheck(pPlayer, 17) && func_4B2C8(pPlayer, 1, 2))
+            if (powerupCheck(pPlayer, 17)
+#if APPVER_BLOODREV >= AV_BR_BL111A
+                && func_4B2C8(pPlayer, 1, 2)
+#endif
+                )
                 StartQAV(pPlayer, 48, nClientFireFlare);
             else
                 StartQAV(pPlayer, 43, nClientFireFlare);
@@ -2161,15 +2250,19 @@ void WeaponProcess(PLAYER *pPlayer)
             {
             case 2:
                 pPlayer->atc3 = 4;
+#ifdef PLASMAPAK
                 if (func_4B2C8(pPlayer, 7, 10) && powerupCheck(pPlayer, 17))
                     StartQAV(pPlayer, 84, nClientFireTesla);
                 else
+#endif
                     StartQAV(pPlayer, 77, nClientFireTesla);
                 return;
             case 5:
+#ifdef PLASMAPAK
                 if (func_4B2C8(pPlayer, 7, 10) && powerupCheck(pPlayer, 17))
                     StartQAV(pPlayer, 84, nClientFireTesla);
                 else
+#endif
                     StartQAV(pPlayer, 77, nClientFireTesla);
                 return;
             }
@@ -2283,42 +2376,64 @@ void WeaponProcess(PLAYER *pPlayer)
         case 8:
             if (func_4B2C8(pPlayer, 7, 35))
             {
+#ifdef PLASMAPAK
                 if (func_4B2C8(pPlayer, 7, 70) && powerupCheck(pPlayer, 17))
                     StartQAV(pPlayer, 85, nClientFireTesla);
                 else
                     StartQAV(pPlayer, 78, nClientFireTesla);
+#else
+                StartQAV(pPlayer, 78, nClientAltFireTesla);
+#endif
             }
             else
             {
+#ifdef PLASMAPAK
                 if (func_4B2C8(pPlayer, 7, 10) && powerupCheck(pPlayer, 17))
                     StartQAV(pPlayer, 84, nClientFireTesla);
                 else
+#endif
                     StartQAV(pPlayer, 77, nClientFireTesla);
             }
             return;
         case 5:
+#ifdef PLASMAPAK
             if (powerupCheck(pPlayer, 17))
                 StartQAV(pPlayer, 122, nClientAltFireNapalm);
             else
                 StartQAV(pPlayer, 91, nClientAltFireNapalm);
+#else
+            if (powerupCheck(pPlayer, 17))
+                StartQAV(pPlayer, 123, nClientFireNapalm2);
+            else
+                StartQAV(pPlayer, 91, nClientFireNapalm);
+#endif
             return;
         case 2:
             if (CheckAmmo(pPlayer, 1, 8))
             {
-                if (powerupCheck(pPlayer, 17) && func_4B2C8(pPlayer, 1, 16))
+                if (powerupCheck(pPlayer, 17)
+#if APPVER_BLOODREV >= AV_BR_BL111A
+                    && func_4B2C8(pPlayer, 1, 16)
+#endif
+                    )
                     StartQAV(pPlayer, 48, nClientAltFireFlare);
                 else
                     StartQAV(pPlayer, 43, nClientAltFireFlare);
             }
             else
             {
-                if (powerupCheck(pPlayer, 17) && func_4B2C8(pPlayer, 1, 2))
+                if (powerupCheck(pPlayer, 17)
+#if APPVER_BLOODREV >= AV_BR_BL111A
+                    && func_4B2C8(pPlayer, 1, 2)
+#endif
+                    )
                     StartQAV(pPlayer, 48, nClientFireFlare);
                 else
                     StartQAV(pPlayer, 43, nClientFireFlare);
             }
             return;
         case 9:
+#ifdef PLASMAPAK
             if (gGameOptions.nGameType <= GAMETYPE_1 && !func_4B2C8(pPlayer, 8) && pPlayer->pXSprite->health < (25 << 4))
             {
                 sfxPlay3DSound(pPlayer->pSprite, 494, 2);
@@ -2330,6 +2445,10 @@ void WeaponProcess(PLAYER *pPlayer)
                 AltFireLifeLeech(1, pPlayer);
                 pPlayer->atc3 = -1;
             }
+#else
+            sfxPlay3DSound(pPlayer->pSprite, 494, 2);
+            StartQAV(pPlayer, 116, nClientFireLifeLeech);
+#endif
             return;
         }
     }

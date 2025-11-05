@@ -38,30 +38,48 @@
 #include "view.h"
 #include "weather.h"
 
+#if APPVER_BLOODREV >= AV_BR_BL111A
+#define LDIFF1 0
+#else
+#define LDIFF1 -12
+#endif
+
 short short_133FB4 = -1;
 char BloodINIFile[128] = "BLOOD.INI";
 
+#if APPVER_BLOODREV >= AV_BR_BL120
+#define MONSTERRESPAWNTIME 3600
+#else
+#define MONSTERRESPAWNTIME 1200
+#endif
+
 GAMEOPTIONS gSingleGameOptions = {
-    0, 2, 0, 0, "", "", 2, "", "", 0, 0, 0, 1, 0, 0, 0, 0, 0, 2, 3600, 1800, 1800, 7200
+    0, 2, 0, 0, "", "", 2, "", "", 0, 0, 0, 1, 0, 0, 0, 0, 0, 2, MONSTERRESPAWNTIME, 1800, 1800, 7200
 };
 
 GAMEOPTIONS gBloodBathGameOptions = {
-    2, 2, 0, 0, "", "", 2, "", "", 0, 0, 0, 0, 0, 1, 1, 2, 0, 2, 3600, 1800, 1800, 7200
+    2, 2, 0, 0, "", "", 2, "", "", 0, 0, 0, 0, 0, 1, 1,
+#if APPVER_BLOODREV >= AV_BR_BL120
+    2,
+#else
+    1,
+#endif
+    0, 2, MONSTERRESPAWNTIME, 1800, 1800, 7200
 };
 
 GAMEOPTIONS gCoopGameOptions = {
-    1, 2, 0, 0, "", "", 2, "", "", 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 3600, 1800, 1800, 3600
+    1, 2, 0, 0, "", "", 2, "", "", 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, MONSTERRESPAWNTIME, 1800, 1800, 3600
 };
 
 GAMEOPTIONS gTeamGameOptions = {
-    3, 2, 0, 0, "", "", 2, "", "", 0, 0, 0, 0, 0, 1, 2, 1, 0, 1, 3600, 1800, 1800, 7200
+    3, 2, 0, 0, "", "", 2, "", "", 0, 0, 0, 0, 0, 1, 2, 1, 0, 1, MONSTERRESPAWNTIME, 1800, 1800, 7200
 };
 int gNextLevel;
 GAMEOPTIONS gGameOptions;
 BOOL gGameStarted;
 WEATHERTYPE gWeatherType;
 IniFile *BloodINI;
-EPISODEINFO gEpisodeInfo[7];
+EPISODEINFO gEpisodeInfo[kMaxEpisodes + 1];
 int gEpisodeCount;
 
 void func_26988(void)
@@ -80,16 +98,24 @@ void func_269D8(char *pzIni)
 void levelPlayIntroScene(int nEpisode)
 {
     gGameOptions.uGameFlags &= ~4;
+#if APPVER_BLOODREV >= AV_BR_BL111A
     sndStopSong();
+#endif
     sndKillAllSounds();
     sfxKillAllSounds();
     ambKillAll();
+#if APPVER_BLOODREV >= AV_BR_BL111A
     seqKillAll();
+#endif
     EPISODEINFO *pEpisode = &gEpisodeInfo[nEpisode];
-    if (pEpisode->at9028)
-        credPlaySmk(pEpisode->at8f08, pEpisode->at9028);
+    char* s = pEpisode->at8f08;
+    int i = pEpisode->at9028;
+    if (i)
+        credPlaySmk(s, i);
+#ifdef REGISTERED
     else
-        credPlaySmk(pEpisode->at8f08, pEpisode->at9030);
+        credPlaySmk(s, pEpisode->at9030);
+#endif
     scrSetDac();
     viewResizeView(gViewSize);
     credReset();
@@ -99,16 +125,24 @@ void levelPlayIntroScene(int nEpisode)
 void levelPlayEndScene(int nEpisode)
 {
     gGameOptions.uGameFlags &= ~8;
+#if APPVER_BLOODREV >= AV_BR_BL111A
     sndStopSong();
+#endif
     sndKillAllSounds();
     sfxKillAllSounds();
     ambKillAll();
+#if APPVER_BLOODREV >= AV_BR_BL111A
     seqKillAll();
+#endif
     EPISODEINFO *pEpisode = &gEpisodeInfo[nEpisode];
-    if (pEpisode->at902c)
-        credPlaySmk(pEpisode->at8f98, pEpisode->at902c);
+    char* s = pEpisode->at8f98;
+    int i = pEpisode->at902c;
+    if (i)
+        credPlaySmk(s, i);
+#ifdef REGISTERED
     else
-        credPlaySmk(pEpisode->at8f98, pEpisode->at90c0);
+        credPlaySmk(s, pEpisode->at90c0);
+#endif
     scrSetDac();
     viewResizeView(gViewSize);
     credReset();
@@ -133,30 +167,30 @@ void levelTriggerSecret(int nSecret)
 void CheckSectionAbend(char *pzSection)
 {
     if (!pzSection || !BloodINI->SectionExists(pzSection))
-        ThrowError(346)("Section [%s] expected in BLOOD.INI", pzSection);
+        ThrowError(346+LDIFF1)("Section [%s] expected in BLOOD.INI", pzSection);
 }
 
 void CheckKeyAbend(char *pzSection, char *pzKey)
 {
-    dassert(pzSection != NULL, 352);
+    dassert(pzSection != NULL, 352+LDIFF1);
 
     if (!pzKey || !BloodINI->KeyExists(pzSection, pzKey))
-        ThrowError(355)("Key %s expected in section [%s] of BLOOD.INI", pzSection, pzKey);
+        ThrowError(355+LDIFF1)("Key %s expected in section [%s] of BLOOD.INI", pzSection, pzKey);
 }
 
 LEVELINFO * levelGetInfoPtr(int nEpisode, int nLevel)
 {
-    dassert(nEpisode >= 0 && nEpisode < gEpisodeCount, 361);
+    dassert(nEpisode >= 0 && nEpisode < gEpisodeCount, 361+LDIFF1);
     EPISODEINFO *pEpisodeInfo = &gEpisodeInfo[nEpisode];
-    dassert(nLevel >= 0 && nLevel < pEpisodeInfo->nLevels, 365);
+    dassert(nLevel >= 0 && nLevel < pEpisodeInfo->nLevels, 365+LDIFF1);
     return &pEpisodeInfo->at28[nLevel];
 }
 
 char * levelGetFilename(int nEpisode, int nLevel)
 {
-    dassert(nEpisode >= 0 && nEpisode < gEpisodeCount, 373);
+    dassert(nEpisode >= 0 && nEpisode < gEpisodeCount, 373+LDIFF1);
     EPISODEINFO *pEpisodeInfo = &gEpisodeInfo[nEpisode];
-    dassert(nLevel >= 0 && nLevel < pEpisodeInfo->nLevels, 377);
+    dassert(nLevel >= 0 && nLevel < pEpisodeInfo->nLevels, 377+LDIFF1);
     return pEpisodeInfo->at28[nLevel].at0;
 }
 
@@ -164,7 +198,7 @@ char * levelGetMessage(int nMessage)
 {
     int nEpisode = gGameOptions.nEpisode;
     int nLevel = gGameOptions.nLevel;
-    dassert(nMessage < kMaxMessages, 388);
+    dassert(nMessage < kMaxMessages, 388+LDIFF1);
     LEVELINFO *pLevelInfo = &gEpisodeInfo[nEpisode].at28[nLevel];
     if (!pLevelInfo->atec[nMessage][0])
         return NULL;
@@ -225,7 +259,7 @@ void levelLoadDefaults(void)
     char buffer[64];
     char buffer2[16];
     memset(gEpisodeInfo, 0, sizeof(gEpisodeInfo));
-    for (int i = 0; i < 6; i++)
+    for (int i = 0; i < kMaxEpisodes; i++)
     {
         sprintf(buffer, "Episode%ld", i+1);
         if (!BloodINI->SectionExists(buffer))
@@ -234,16 +268,20 @@ void levelLoadDefaults(void)
         strncpy(pEpisodeInfo->at0, BloodINI->GetKeyString(buffer, "Title", buffer), 31);
         strncpy(pEpisodeInfo->at8f08, BloodINI->GetKeyString(buffer, "CutSceneA", ""), 144);
         pEpisodeInfo->at9028 = BloodINI->GetKeyInt(buffer, "CutWavA", -1);
+#ifdef REGISTERED
         if (pEpisodeInfo->at9028 == 0)
             strncpy(pEpisodeInfo->at9030, BloodINI->GetKeyString(buffer, "CutWavA", ""), 144);
         else
             pEpisodeInfo->at9030[0] = 0;
+#endif
         strncpy(pEpisodeInfo->at8f98, BloodINI->GetKeyString(buffer, "CutSceneB", ""), 144);
         pEpisodeInfo->at902c = BloodINI->GetKeyInt(buffer, "CutWavB", -1);
+#ifdef REGISTERED
         if (pEpisodeInfo->at902c == 0)
             strncpy(pEpisodeInfo->at90c0, BloodINI->GetKeyString(buffer, "CutWavB", ""), 144);
         else
             pEpisodeInfo->at90c0[0] = 0;
+#endif
 
         pEpisodeInfo->bloodbath = BloodINI->GetKeyInt(buffer, "BloodBathOnly", 0);
         pEpisodeInfo->cutALevel = BloodINI->GetKeyInt(buffer, "CutSceneALevel", 0);
@@ -274,7 +312,7 @@ void levelAddUserMap(char *pzMap)
     ChangeExtension(buffer, ".DEF");
 
     IniFile UserINI(buffer);
-    int nEpisode = ClipRange(UserINI.GetKeyInt(NULL, "Episode", 0), 0, 5);
+    int nEpisode = ClipRange(UserINI.GetKeyInt(NULL, "Episode", 0), 0, kMaxEpisodes-1);
     EPISODEINFO *pEpisodeInfo = &gEpisodeInfo[nEpisode];
     int nLevel = ClipRange(UserINI.GetKeyInt(NULL, "Level", pEpisodeInfo->nLevels), 0, 15);
     if (nLevel >= pEpisodeInfo->nLevels)
@@ -300,7 +338,7 @@ void levelAddUserMap(char *pzMap)
 
 void levelGetNextLevels(int nEpisode, int nLevel, int *pnEndingA, int *pnEndingB)
 {
-    dassert(pnEndingA != NULL && pnEndingB != NULL, 649);
+    dassert(pnEndingA != NULL && pnEndingB != NULL, 649+LDIFF1);
     LEVELINFO *pLevelInfo = &gEpisodeInfo[nEpisode].at28[nLevel];
     int nEndingA = pLevelInfo->ate4;
     if (nEndingA >= 0)

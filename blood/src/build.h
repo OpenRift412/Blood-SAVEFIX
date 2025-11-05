@@ -18,13 +18,18 @@
 #define _BUILD_H_
 
 #include "typedefs.h"
+#include "globals.h"
 
 #define kMaxVoxels 512
 #define kMaxVoxMips 5
 #define kMaxSectors 1024
 #define kMaxWalls 8192
 #define kMaxSprites 4096
+#if APPVER_BLOODREV >= AV_BR_BL120
 #define kMaxTiles 6144
+#else
+#define kMaxTiles 4096
+#endif
 #define kMaxStatus 1024
 #define kMaxSkyTiles 256
 #define kMaxPlayers 8
@@ -330,6 +335,8 @@ int mvlineasm1(int, byte*, int, int, byte*, byte*);
 #pragma aux mvlineasm1 parm [eax][ebx][ecx][edx][esi][edi];
 int mvlineasm4(int, byte*);
 #pragma aux mvlineasm4 parm [ecx][edi] modify [eax ebx ecx edx esi edi];
+void setupmvlineasm(long);
+#pragma aux setupmvlineasm parm [eax];
 
 
 }

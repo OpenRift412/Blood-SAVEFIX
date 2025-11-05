@@ -49,7 +49,11 @@ int drawoverheadmap(long cposx, long cposy, long czoom, short cang)
                 //Draw red lines
         for(i=0;i<numsectors;i++)
         {
-                if (!gFullMap && !(show2dsector[i>>3]&(1<<(i&7)))) continue;
+                if (
+#if APPVER_BLOODREV >= AV_BR_BL111A
+                    !gFullMap &&
+#endif
+                    !(show2dsector[i>>3]&(1<<(i&7)))) continue;
 
                 startwall = sector[i].wallptr;
                 endwall = sector[i].wallptr + sector[i].wallnum;
@@ -70,7 +74,11 @@ int drawoverheadmap(long cposx, long cposy, long czoom, short cang)
                         col = 139; //red
                         if ((wal->cstat|wall[wal->nextwall].cstat)&1) col = 234; //magenta
 
-                        if (!gFullMap && !(show2dsector[wal->nextsector>>3]&(1<<(wal->nextsector&7))))
+                        if (
+#if APPVER_BLOODREV >= AV_BR_BL111A
+                            !gFullMap &&
+#endif
+                            !(show2dsector[wal->nextsector>>3]&(1<<(wal->nextsector&7))))
                                 col = 24;
             else continue;
 
@@ -91,7 +99,11 @@ int drawoverheadmap(long cposx, long cposy, long czoom, short cang)
         k = gView->pSprite->index;
         for(i=0;i<numsectors;i++)
         {
-                if (!gFullMap && !(show2dsector[i>>3]&(1<<(i&7)))) continue;
+                if (
+#if APPVER_BLOODREV >= AV_BR_BL111A
+                    !gFullMap &&
+#endif
+                    !(show2dsector[i>>3]&(1<<(i&7)))) continue;
                 for(j=headspritesect[i];j>=0;j=nextspritesect[j])
                         //if ((show2dsprite[j>>3]&(1<<(j&7))) > 0)
                         {
@@ -225,7 +237,11 @@ int drawoverheadmap(long cposx, long cposy, long czoom, short cang)
                 //Draw white lines
         for(i=0;i<numsectors;i++)
         {
-                if (!gFullMap && !(show2dsector[i>>3]&(1<<(i&7)))) continue;
+                if (
+#if APPVER_BLOODREV >= AV_BR_BL111A
+                    !gFullMap &&
+#endif
+                    !(show2dsector[i>>3]&(1<<(i&7)))) continue;
 
                 startwall = sector[i].wallptr;
                 endwall = sector[i].wallptr + sector[i].wallnum;
@@ -315,6 +331,7 @@ void CViewMap::func_25C74(void)
     char buffer[128];
     if (!bActive)
         return;
+#if APPVER_BLOODREV >= AV_BR_BL111A
     BOOL tm = 0;
     int vdi = gViewSize;
     if (gViewSize > 2)
@@ -339,6 +356,10 @@ void CViewMap::func_25C74(void)
 
     if (tm)
         viewResizeView(vdi);
+#else
+    drawmapview(x,y,nZoom>>2,angle);
+    drawoverheadmap(x,y,nZoom>>2,angle);
+#endif
 }
 
 void CViewMap::func_25DB0(SPRITE *pSprite)

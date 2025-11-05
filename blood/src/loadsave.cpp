@@ -45,6 +45,12 @@
 #include "sound.h"
 #include "view.h"
 
+#if APPVER_BLOODREV >= AV_BR_BL111
+#define LDIFF1 0
+#else
+#define LDIFF1 -10
+#endif
+
 GAMEOPTIONS gSaveGameOptions[10];
 byte *gSaveGamePic[10];
 unsigned int gSavedOffset;
@@ -195,6 +201,20 @@ public:
     virtual void Save(void);
 };
 
+#ifdef SHAREWARE
+#ifdef SWRETAIL
+#define RELEASEID 2
+#else
+#define RELEASEID 1
+#endif
+#else
+#ifdef PLASMAPAK
+#define RELEASEID 4
+#else
+#define RELEASEID 3
+#endif
+#endif
+
 void MyLoadSave::Load(void)
 {
     int nNumSprites;
@@ -210,7 +230,7 @@ void MyLoadSave::Load(void)
     if (version != gGameVersion.w)
         ThrowError(296)("Incompatible version of saved game found!");
     Read(&release, sizeof(release));
-    id = 4;
+    id = RELEASEID;
     if (release != id)
         ThrowError(314)("Saved game is from another release of Blood");
     Read(&gGameOptions, sizeof(gGameOptions));
@@ -261,7 +281,9 @@ void MyLoadSave::Load(void)
     Read(&char_1A76C6, sizeof(char_1A76C6));
     Read(&char_1A76C8, sizeof(char_1A76C8));
     Read(&char_1A76C7, sizeof(char_1A76C7));
+#ifdef REGISTERED
     Read(&char_19AE44, sizeof(char_19AE44));
+#endif
     Read(gStatCount, sizeof(gStatCount));
     Read(nextXSprite, sizeof(nextXSprite));
     Read(nextXWall, sizeof(nextXWall));
@@ -313,7 +335,7 @@ void MyLoadSave::Save(void)
     Write(&id, sizeof(id));
     ushort version = gGameVersion.w;
     Write(&version, sizeof(version));
-    id = 4;
+    id = RELEASEID;
     Write(&id, sizeof(id));
     for (int i = 0; i < kMaxSprites; i++)
     {
@@ -366,7 +388,9 @@ void MyLoadSave::Save(void)
     Write(&char_1A76C6, sizeof(char_1A76C6));
     Write(&char_1A76C8, sizeof(char_1A76C8));
     Write(&char_1A76C7, sizeof(char_1A76C7));
+#ifdef REGISTERED
     Write(&char_19AE44, sizeof(char_19AE44));
+#endif
     Write(gStatCount, sizeof(gStatCount));
     Write(nextXSprite, sizeof(nextXSprite));
     Write(nextXWall, sizeof(nextXWall));
@@ -424,29 +448,37 @@ void LoadSavedInfo(void)
         v4 = short_27AA54;
         if (read(hFile, &vc, sizeof(vc)) == -1)
         {
+#if APPVER_BLOODREV >= AV_BR_BL111
             close(hFile);
+#endif
             goto next;
         }
         if (vc != 'DULB')
         {
+#if APPVER_BLOODREV >= AV_BR_BL111
             close(hFile);
+#endif
             goto next;
         }
         read(hFile, &v4, sizeof(v4));
         if (v4 != gGameVersion.w)
         {
+#if APPVER_BLOODREV >= AV_BR_BL111
             close(hFile);
+#endif
             goto next;
         }
         read(hFile, &v8, sizeof(v8));
-        vc = 4;
+        vc = RELEASEID;
         if (v8 != vc)
         {
+#if APPVER_BLOODREV >= AV_BR_BL111
             close(hFile);
+#endif
             goto next;
         }
         if (read(hFile, &gSaveGameOptions[nCount], sizeof(gSaveGameOptions[0])) == -1)
-            ThrowError(752)("File error #%d reading save file.", errno);
+            ThrowError(752+LDIFF1)("File error #%d reading save file.", errno);
         close(hFile);
         strcpy(strRestoreGameStrings[gSaveGameOptions[nCount].nSaveGameSlot], gSaveGameOptions[nCount].szUserGameName);
 next:
@@ -456,6 +488,18 @@ next:
 
 void UpdateSavedInfo(int nSlot)
 {
+#if APPVER_BLOODREV < AV_BR_BL111
+    int hFile = open(gSaveGameOptions[nSlot].szSaveGameName, O_BINARY | O_WRONLY);
+    if (hFile == -1)
+    {
+        ThrowError(770)("File error #%d updating save file header.", errno);
+    }
+    if (write(hFile, &gSaveGameOptions[nSlot], sizeof(GAMEOPTIONS)) == -1)
+    {
+        ThrowError(773)("File error #%d writing to save file.", errno);
+    }
+    close(hFile);
+#endif
     strcpy(strRestoreGameStrings[gSaveGameOptions[nSlot].nSaveGameSlot], gSaveGameOptions[nSlot].szUserGameName);
 }
 

@@ -3,8 +3,8 @@ SRC_DIR = src
 OBJ_DIR = obj
 INC_DIR = include
 
-CPPFLAGS = /4r /s /orti /oe=3 /i=$(INC_DIR);..\helix32
-CFLAGS = /i=$(INC_DIR)
+CPPFLAGS = /4r /s /orti /oe=3 /dAPPVER_EXEDEF=$(appver_exedef)
+CFLAGS =
 AFLAGS = -ml
 
 
@@ -12,7 +12,7 @@ AFLAGS = -ml
 .cpp: $(SRC_DIR)
 .c: $(SRC_DIR)
 .asm: $(SRC_DIR)
-.obj: $(OBJ_DIR)
+.obj: $(appver_exedef)\$(OBJ_DIR)
 
 OBJS = &
 qheap.obj &
@@ -31,20 +31,22 @@ mouse.obj &
 misc.obj &
 gfx.obj
 
-all : qtools.lib .symbolic
+all : $(appver_exedef)\qtools.lib .symbolic
     @%null
 
-qtools.lib: $(OBJS)
-    %make qtools.lnk
-	wlib $^@ /n /b @qtools.lnk
+$(appver_exedef)\qtools.lib: $(OBJS)
+    %make $(appver_exedef)\qtools.lnk
+	cd $(appver_exedef)
+	wlib qtools.lib /n /b @qtools.lnk
+	cd ..
 
-qtools.lnk: makefile
+$(appver_exedef)\qtools.lnk: makefile
     %create $^@
     for %i in ($(OBJS)) do %append $^@ -+$(OBJ_DIR)\%i
 
 
 .cpp.obj:
-    wpp386 $(CPPFLAGS) $[* /fo=$(OBJ_DIR)\$^&
+    wpp386 $(CPPFLAGS) $[* /fo=$(appver_exedef)\$(OBJ_DIR)\$^&
 
 .asm.obj:
-    tasm $(AFLAGS) $[*.asm $(OBJ_DIR)\$^&
+    tasm $(AFLAGS) $[*.asm $(appver_exedef)\$(OBJ_DIR)\$^&
